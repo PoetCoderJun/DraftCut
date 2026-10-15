@@ -22,7 +22,7 @@ async function main() {
   if (!args.project_dir || !args.plan || !args.output) throw new Error('--project-dir, --plan and --output are required');
   if (args.workers !== undefined && args.workers !== '1') throw new Error('DraftCut requires --workers 1');
   const encoding = args.encoding || 'hardware', purpose = args.purpose || 'production';
-  if (!['hardware','software'].includes(encoding) || !['production','smoke'].includes(purpose)) throw new Error('Invalid encoding or purpose');
+  if (!['hardware','software'].includes(encoding) || !['production','smoke','simulation'].includes(purpose)) throw new Error('Invalid encoding or purpose');
   const projectDir = path.resolve(args.project_dir), output = path.resolve(args.output);
   if (purpose === 'production') {
     const state = JSON.parse(await readFile(path.join(projectDir,'project-state.json'),'utf8'));
@@ -37,6 +37,14 @@ async function main() {
   const plan = JSON.parse(await readFile(path.resolve(args.plan),'utf8'));
   if (purpose === 'smoke' && plan.example_only !== true) throw new Error('Smoke rendering requires an explicitly marked synthetic example plan');
   const approval=assertWorkflow(path.resolve(args.plan),projectDir);
+  if(approval.simulation_run&&purpose!=='simulation')throw new Error('Simulated-user approvals cannot authorize production/smoke export; use --purpose simulation');
+  if(purpose==='simulation'){
+    if(!approval.simulation_run)throw new Error('Simulation export requires an authorized isolated simulation run');
+    const rel=path.relative(approval.simulation_run.run_root,output);
+    if(rel.startsWith('..')||path.isAbsolute(rel)||!/^TEST-.*\.mp4$/i.test(path.basename(output)))throw new Error('Simulation output must stay inside its run and be named TEST-*.mp4');
+    const state=JSON.parse(await readFile(path.join(projectDir,'project-state.json'),'utf8'));
+    if(state.status!=='test-ready'||state.needs_visual_production!==false||state.test_review?.scope!=='usability-only')throw new Error('Complete the test visuals and record test-ready/usability-only; do not claim continuous listening');
+  }
   if(purpose==='smoke'&&!approval.example_only)throw new Error('Smoke accepts only the known synthetic example with both fixture approvals');
   const fps = plan.render_spec?.fps;
   if (!Number.isFinite(fps) || fps <= 0) throw new Error('Invalid render fps');

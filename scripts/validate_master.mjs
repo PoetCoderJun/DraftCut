@@ -36,7 +36,8 @@ async function main() {
   checks.delivery_cleanliness=entries.length===1 && entries[0]===path.basename(final) && path.extname(final).toLowerCase()==='.mp4';
   const passed=Object.values(checks).every(Boolean);
   const report={schema_version:'motiontalk.quality-report.v1',status:passed?'passed':'failed',
-    scope:'technical',engine:'hyperframes',visual_review:'not_assessed_by_this_validator',
+    scope:approval.simulation_run?'technical-simulation':'technical',engine:'hyperframes',visual_review:'not_assessed_by_this_validator',
+    ...(approval.simulation_run?{owner_approval:false,hearing:'not-tested',simulation_run:approval.simulation_run}:{}),
     packaged_video:path.relative(output,final),
     checks:Object.fromEntries(Object.entries(checks).map(([k,v])=>[k,v?'passed':'failed'])),
     evidence:{audioComparison,media:metadata,approval,outputSha256:fileHash(final)}};

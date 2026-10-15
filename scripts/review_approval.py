@@ -18,6 +18,7 @@ def crypto(mode,payload):
     if p.returncode:raise ValueError('Human approval key/signature verification failed')
     return json.loads(p.stdout)
 def issue(request,private_key,passphrase):
+    if request.get('simulation_run'):raise ValueError('Production owner identity cannot approve a simulation request')
     if request.get('stage') not in ('manuscript','director'):raise ValueError('Unknown review stage')
     payload={'schema':'draftcut.human-approval.v1','request_sha256':digest(request),'stage':request['stage'],
              'project_id':request['project_id'],'generation':request['generation'],'decision':'approved',

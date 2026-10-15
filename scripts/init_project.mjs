@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
 import {parseArgs, require, mediaMetadata} from './hyperframes_runtime.mjs';
 import {parseSrt, scaffold} from './project_scaffold.mjs';
+import {assertWorkflow} from './workflow_guard.mjs';
 
 try {
   const args = parseArgs(process.argv.slice(2), ['project_dir', 'plan']);
@@ -14,6 +15,8 @@ try {
     const planPath = path.resolve(args.plan), dir = path.resolve(args.project_dir);
     execFileSync('python3',[path.join(path.dirname(fileURLToPath(import.meta.url)),'validate_plan.py'),'--plan',planPath],{stdio:'pipe'});
     const plan = JSON.parse(await readFile(planPath,'utf8'));
+    const approval=assertWorkflow(planPath);
+    if(approval.simulation_run)plan.simulation_run=approval.simulation_run;
     const resolveSource = v => path.resolve(path.dirname(planPath),v);
     const audioPath = resolveSource(plan.source.audio);
     const media=mediaMetadata(audioPath), audio=media.streams?.find(s=>s.codec_type==='audio');
@@ -32,7 +35,7 @@ try {
     const {width:w,height:h}=plan.render_spec;
     await writeFile(path.join(dir,'theme.css'),`:root{--ink:#f8fafc;--accent:#7dd3fc;--font:system-ui,"PingFang SC","Noto Sans CJK SC",sans-serif;}*{box-sizing:border-box}body{margin:0;background:#101827;color:var(--ink);font-family:var(--font)}#master{position:relative;width:${w}px;height:${h}px;overflow:hidden}.background{position:absolute;inset:0;background:#101827}.scene,.caption{opacity:0;visibility:hidden}.scene{position:absolute;inset:0;display:flex;align-items:center;padding:9%;z-index:1}.headline{display:block;max-width:100%;font-size:${w*.055}px;line-height:1.25;overflow-wrap:anywhere}.caption{position:absolute;left:7%;right:7%;bottom:7%;z-index:10;text-align:center;white-space:pre-wrap;line-height:1.35;font-size:${w*.036}px;overflow-wrap:anywhere}`);
     await writeFile(path.join(dir,'index.html'),html);
-    await writeFile(path.join(dir,'project-state.json'),JSON.stringify({status:'scaffold',input:'audio',needs_visual_production:true,workflow:plan.workflow},null,2)+'\n');
+    await writeFile(path.join(dir,'project-state.json'),JSON.stringify({status:'scaffold',input:'audio',needs_visual_production:true,workflow:plan.workflow,...(approval.simulation_run?{simulation_run:approval.simulation_run,owner_approval:false}: {})},null,2)+'\n');
     await writeFile(path.join(dir,'hyperframes.json'),JSON.stringify({registry:'https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry',paths:{blocks:'compositions',components:'compositions/components',assets:'assets'}},null,2)+'\n');
     console.log('Audio-first scaffold created. No presenter video assumed. Build the approved visual story and inspect it before declaring production complete.');
   }

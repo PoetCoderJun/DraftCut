@@ -9,6 +9,8 @@ node <skill-root>/scripts/validate_master.mjs --plan "$plan" \
 
 production 导出要求 ready 和连续预览证据。默认本机完整 Chrome、单 worker、硬件 H.264；环境不支持时明确使用 --encoding software，不静默替换。不能自动下载浏览器或升级运行时。--purpose smoke 仅用于标为合成的技术测试，不绕过创作者视频的制作。
 
+用户明确授权且有独立 run 清单的模拟用户测试，必须用 `--purpose simulation`、run 内 `TEST-*.mp4` 和测试水印，见[测试说明](../docs/simulation-testing.md)。不能用 production 或 smoke 接受模拟批准；报告只作交互与技术链路证据。
+
 final/ 仅含最终 MP4，日志、计划、字幕和报告在工作目录。校验批准状态、尺寸/帧率、视频和音频时长、H.264/AAC、单文件交付；时长容差为三帧，不是感知同步证明。连续观看和试听覆盖开头/中段/尾段，核对字幕、论点与尾部音频。
 
 quality-report.v1.json scope=technical；视觉与听感单独记录，没做就 pending，不把技术通过写成创意或音质已确认。交付视频、导演计划、准备报告、技术报告、预览/试听结论和真实限制。失败保留日志，不以假样例替代。

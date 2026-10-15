@@ -2,6 +2,8 @@
 
 所有路径由 Agent 管理，原素材不覆盖。录音与一支口播视频均可输入；多源录屏对齐不在本流程内。
 
+以下完整听审与 owner 签名要求适用于生产。用户明确授权且带独立 run 清单的模拟交互测试，按[测试说明](../docs/simulation-testing.md)记录能力限制与两次模拟确认；不能把测试标成真实听审或生产批准。
+
 ## 1. 转写和导入
 
 内置 ASR 来自 clean-talking-video。使用前取得针对当前素材的云上传／费用授权，不能因用户授权工程改造就调用付费服务。
@@ -28,6 +30,7 @@ python3 <skill-root>/scripts/spoken_workflow.py init --source "$source" \
 - `corrections`：按原词 ID 修正 ASR 字面错误，提供 `text/reason/listening_evidence`；敏感词变动另需敏感变更理由。只纠正实际原声，不能加原声没有的词、靠改字幕伪装音频已剪，也不调用 TTS 补词。
 - `pause_deletions`：原时间线的 `start/end/reason`，只能在词外间隙。保留有意义停顿，剪点听审不吞字。
 - `caption_groups`：可选，按输出次序分组原词 ID，用于断句；不能漏词、复制词或新增文本。
+- `include_presenter`：默认 false，只用原声制作 MG；计划使用人物画面时在本次审核前设 true，按同一剪辑时间线生成，不无需求地编码人物中间片。
 
 每次内容变化递增 `revision`，再次试听。所有审核还会绑定实际内容摘要和系统修订代次；只改 revision、状态或布尔字段不能获得批准。
 

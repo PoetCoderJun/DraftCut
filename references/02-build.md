@@ -17,6 +17,8 @@ node <skill-root>/scripts/hf.mjs preview "$output_dir/hyperframes"
 
 连续预览覆盖开头、转场、密集内容和结尾；截图抽查不等于连续观看。核对字幕同步并实际试听；未执行就标 pending。完成制作后记录真实证据：
 
+以上是生产验收。隔离模拟 run 完成实际视觉实现后，按[测试说明](../docs/simulation-testing.md)写 `test-ready`/`usability-only`，未测视听如实列出，不编造 continuous 证据。测试水印保留；不为本次测试另建展示 HTML 或自造操作平台。
+
 ```json
 {"status":"ready","input":"audio","needs_visual_production":false,
  "visual_review":{"scope":"continuous","evidence":["preview-review.md"]}}

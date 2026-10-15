@@ -32,6 +32,7 @@ export function scaffold(plan, captions) {
 <script src="assets/gsap.min.js"></script><link rel="stylesheet" href="theme.css"></head>
 <body><div id="master" data-composition-id="master" data-start="0" data-duration="${duration}" data-width="${w}" data-height="${h}" data-fps="${fps}">
 <div id="background" class="background"></div>
+${plan.simulation_run?'<div id="draftcut-test-watermark" style="position:absolute;z-index:9999;top:12px;right:12px;padding:8px 12px;background:#111c;color:#fff;font:14px sans-serif;pointer-events:none">SIMULATED USER TEST · HEARING NOT TESTED</div>':''}
 ${cueHtml}
 <audio id="main-audio" class="clip" data-start="0" data-duration="${duration}" data-track-index="20" src="assets/narration.wav" data-volume="1"></audio>
 ${captionHtml}

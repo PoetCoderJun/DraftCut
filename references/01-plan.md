@@ -2,7 +2,11 @@
 
 先完成 [完整口播精剪](00-audio.md)，并通过第一道人工审核生成正式精炼音频。此后才在批准音频时间线上规划画面。
 
+明确授权的隔离模拟 run 使用两次独立的模拟用户确认，流程和变更失效要求相同，但不冒称 owner 批准，见[测试说明](../docs/simulation-testing.md)。
+
 逐步解决 layout、idea、materials、style、references；素材和参考片可选。依据内容组织论点、演示、比较与 MG 动画；不用每句标题卡代替解释。数字与事实必须有来源。
+
+用户已经给过的素材和风格不要重复询问。其余可选偏好由 Agent 根据内容提出默认方案，合并进本次导演脚本确认；不用先连续问一串参数问题。
 
 在工作项目写 `MG导演脚本.md` 与 `director-plan.json`。`source.audio/subtitles` 指向上一阶段返回版本目录的 `narration.wav/final.srt`，`duration_seconds` 取实际采样时长。结构例见 [plan.json](../examples/plan-validation/plan.json)。`workflow` 必须包含：
 
