@@ -15,3 +15,9 @@ A source video follows the same cuts. Cumulative frame allocation bounds roundin
 The pure `validate_plan` function checks structure only. Its production CLI, initialization, rendering and delivery all verify the current two-stage signature chain. Initialization copies the approved WAV unchanged and creates a scaffold; actual visual production and continuous preview remain separate work. Exported AAC is decoded and compared against the approved voice waveform, including explicit mono/stereo handling. Codec tolerance is not semantic listening certification.
 
 Run the commands in the [local verification guide](getting-started.md#local-verification). Fixtures use known tones and authored timestamps, no private recordings, live ASR, paid API or genuine human approvals. Coverage includes semantic edit selections, intentional repetition, protected terms, reorder/sample/SRT integrity, A/V cuts, both gates, stale/forged approvals and explicit legacy migration. Real speech accuracy, naturalness and visual quality still require authorized media and actual review. The efficiency ambition is not benchmarked.
+
+## Repository-link setup verification
+
+An independent execution Agent read the public repository entry, then the bootstrap guide and Skill, and installed a fresh project virtual environment and locked Node packages on this macOS Apple Silicon host. A second check reused those packages. Both runs executed full local Chrome with GSAP and an H.264/AAC encode/full-decode check. Using the reported runtime, it initialized the synthetic composition and linted it with zero errors or warnings.
+
+Existing system Python, Node, FFmpeg and Chrome were reused. This validates the isolated project setup path on this host, not a fresh OS installation, every Agent, cloud ASR or production approvals. The [Agent setup guide](agent-bootstrap.md) owns the technical steps; the user only sends the repository link.

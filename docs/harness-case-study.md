@@ -39,3 +39,9 @@ python3 examples/full-workflow/run.py --output-dir /tmp/draftcut-full-example --
 ```
 
 合成源为按词标记的音调、手写时间戳与独立 fixture 签名，不是实际 ASR 或真实人类批准。测试覆盖语义删改、敏感词和有意重复保留、移序、PCM完整性、SRT映射、人物音视频同剪辑、两道批准阻塞、变更失效、伪造与旧项目迁移。真实口播准确率、自然剪口、视觉质量和效率收益仍须用获授权录音与实际视听评估，未建立 100 倍基准。
+
+## 从仓库链接安装的实跑范围
+
+独立执行 Agent 从公开仓库链接读取 README → Agent bootstrap → SKILL，在 macOS Apple Silicon 的全新副本实际创建 `.venv` 并安装锁定 Node 包，随后重复检查并复用依赖。两次均执行了本机完整 Chrome + GSAP 与 H.264/AAC 编码、完整解码；再按健康报告的运行环境初始化合成工程，lint 为零错误零警告。
+
+这证明当前机器上的隔离项目安装路径；已有系统 Python、Node、FFmpeg 和 Chrome 被复用，不代表在全新操作系统上安装全部系统软件，也不代表所有 Agent、云 ASR 或生产审批已认证。具体执行方法由 [Agent 安装说明](agent-bootstrap.md) 负责，用户仍只需发送仓库链接。
