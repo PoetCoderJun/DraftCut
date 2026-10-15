@@ -2,19 +2,14 @@
 
 [中文首页](../README.md) · [English](../README_EN.md)
 
-## Environment
+## Installation through your Agent
 
-Python 3.10+、Node.js 22+、FFmpeg/ffprobe、本机完整 Google Chrome。Apple Silicon 使用原生 ARM64 Node/Chrome。当前锁定 Hyperframes 0.8.30、GSAP 3.14.2；Agent 需要本地文件／命令、看图和实际试听能力。当前完整流程验证环境为 macOS；事务锁使用 POSIX `flock`，Windows 需移植该层后再用，不承诺当前可直接执行。
+把 https://github.com/PoetCoderJun/DraftCut 发给 Agent，要求它安装配置、检查环境，然后进入口播制作。Agent 按 [安装与健康检查说明](agent-bootstrap.md) 探测本机、复用健康依赖、补齐缺失项并报告实际结果；本页不提供另一套用户安装入口。
 
-从 README 克隆并安装依赖，激活 `.venv` 后启动 Agent；新终端需重新激活。Python 入口用 `.venv/bin/python` 也可。安装锁定依赖：`python3 -m pip install -r requirements.txt` 和 `npm ci`。
+<a id="environment"></a>
+<a id="skill-installation"></a>
 
-## Skill installation
-
-```bash
-npx skills add PoetCoderJun/DraftCut --skill draftcut
-```
-
-选择 Agent 与安装范围，在安装目录完成上述依赖安装，然后调用 `$draftcut`；不支持命名调用时让 Agent 读取该目录的 `SKILL.md`。旧 `$motiontalk` 不自动更新，已有项目参见 [显式迁移](audio-first-migration.md)。
+当前完整流程验证环境为 macOS，事务锁使用 POSIX `flock`。不声称所有 Agent／平台都已认证。旧 Skill 或项目保留，按 [显式迁移](audio-first-migration.md) 处理。
 
 ## Transcription configuration and consent
 

@@ -8,7 +8,7 @@ Give your Agent a recording. DraftCut keeps your voice, refines fillers, mistake
 
 **Start with one audio file.** No presenter footage, prepared subtitles or manual timeline layout required.
 
-[Get started](#get-started) · [See the visual possibilities](#help-people-see-what-you-mean) · [How it works](#from-recording-to-finished-video)
+[Get started](#get-started) · [See the visual possibilities](#help-people-see-what-you-mean)
 
 ![DraftCut: speak naturally, approve a refined edit of your original voice, and turn it into a polished video with visual explanations. Original static frames.](https://raw.githubusercontent.com/PoetCoderJun/DraftCut/cc359ed78804c0de897f394e2c3bf5d4857508a6/assets/readme/draftcut-story-en.svg)
 
@@ -40,29 +40,27 @@ Recommended models: **Opus 5.5, ChatGPT 6 Astra and Kimi k3**.
 
 ## Get started
 
-### 1. Set up once
+### 1. Send the repository link to your Agent
 
-You need **Python 3.10+, Node.js 22+, FFmpeg/ffprobe and a local full Google Chrome**. In a macOS/Linux terminal:
+Send this to an Agent with local file access and command execution:
 
-```bash
-git clone https://github.com/PoetCoderJun/DraftCut.git
-cd DraftCut
-python3 -m venv .venv
-. .venv/bin/activate
-python3 -m pip install -r requirements.txt
-npm ci
+```text
+Read https://github.com/PoetCoderJun/DraftCut and install and configure DraftCut for me.
+Follow its Agent setup guide: inspect the environment, reuse healthy dependencies,
+install what is missing, and run the health checks.
+Report the actual results, then use DraftCut to help me make a spoken video.
+If system access, credentials, or cloud upload and paid-service consent is needed,
+request it through a secure route.
 ```
 
-Work with your Agent in this directory using this Python environment. You can also [install the Skill in your existing Agent](docs/getting-started.md#skill-installation).
-
-Built-in transcription uses DashScope. Supply `DASHSCOPE_API_KEY` through secure environment configuration. **Audio is uploaded to that service and charges may apply; explicit authorization is required.** Keep keys out of prompts and Git. [Configuration guide](docs/getting-started.md#transcription-configuration-and-consent)
+The Agent follows the repository's [installation and health-check guide](docs/agent-bootstrap.md), handles setup, and reports what actually works. Supply credentials through secure configuration; keep them out of prompts and Git. Built-in cloud transcription uploads audio and may incur charges, so it still needs your explicit consent.
 
 ### 2. Give it a recording and a direction
 
 Replace these paths with your real files, then send your Agent:
 
 ```text
-Read SKILL.md in the current directory and use DraftCut.
+Use the DraftCut you just installed.
 Turn /absolute/path/my-recording.wav into a vertical spoken video.
 Keep my voice. Refine fillers, mistakes, retakes and redundant pauses.
 Show me the spoken manuscript and edit reasons for approval before creating the refined audio.
@@ -76,14 +74,6 @@ Add materials or a reference video if you have them. For an existing talking vid
 ### 3. Approve the visual story. Get your video.
 
 Review the spoken manuscript, then the video director script. After both approvals, the Agent continues through production, preview and MP4 export. The editable project stays available for revisions. [How approval works](docs/approvals.md)
-
-## From recording to finished video
-
-![Review the spoken edits, approve the visual script with scenes and captions, then produce the finished video.](https://raw.githubusercontent.com/PoetCoderJun/DraftCut/cc359ed78804c0de897f394e2c3bf5d4857508a6/assets/readme/draftcut-workflow-en.svg)
-
-Prepare the voice, then shape the visual story. The director script brings composition, emphasis, assets and pacing together so you can see where the video is heading before production. Once approved, the Agent continues through production, review and delivery.
-
-**Approve the spoken manuscript → approve the video script → get the video.** Each approval covers a specific revision; content changes require a new review. See [what you review](docs/getting-started.md#what-you-review).
 
 [Setup and usage](docs/getting-started.md) · [Engineering and validation](docs/harness-case-study.en.md) · [Integration and compatibility](docs/audio-first-migration.md) · [Third-party notices](THIRD_PARTY_NOTICES.md)
 

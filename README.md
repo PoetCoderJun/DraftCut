@@ -8,7 +8,7 @@
 
 **一段录音就能开始。** 不用先拍人物视频、做字幕，或在时间线上逐帧摆素材。
 
-[开始制作](#开始制作) · [看看效果](#让观众看懂你在说什么) · [工作流程](#从开口到成片)
+[开始制作](#开始制作) · [看看效果](#让观众看懂你在说什么)
 
 ![DraftCut：自然说话，经口播稿审核精炼为原声音频，再用图解、字幕和章节设计成精美视频。原创静态代表帧。](https://raw.githubusercontent.com/PoetCoderJun/DraftCut/cc359ed78804c0de897f394e2c3bf5d4857508a6/assets/readme/draftcut-story-zh.svg)
 
@@ -40,29 +40,25 @@ DraftCut 是一份 Agent Skill，支持具备本地文件读写、命令执行�
 
 ## 开始制作
 
-### 1. 准备一次环境
+### 1. 把仓库链接发给 Agent
 
-需要 **Python 3.10+、Node.js 22+、FFmpeg/ffprobe 和本机完整 Google Chrome**。在 macOS/Linux 终端执行：
+把这段话发给具备本地文件与命令能力的 Agent：
 
-```bash
-git clone https://github.com/PoetCoderJun/DraftCut.git
-cd DraftCut
-python3 -m venv .venv
-. .venv/bin/activate
-python3 -m pip install -r requirements.txt
-npm ci
+```text
+请读取 https://github.com/PoetCoderJun/DraftCut，为我安装配置 DraftCut。
+按仓库的 Agent 安装说明检查环境，复用已有依赖，补齐缺失项并执行健康检查。
+完成后告诉我检查结果，再使用 DraftCut 帮我制作口播视频。
+如需系统权限、密钥或云服务上传与费用授权，请通过安全方式提示我。
 ```
 
-让 Agent 在这个目录工作，使用这里的 Python 环境。也可以[安装到现有 Agent](docs/getting-started.md#skill-installation)。
-
-内置转写使用 DashScope，通过安全环境配置提供 `DASHSCOPE_API_KEY`。**音频会上传到该服务，可能产生费用，需要你明确授权**。密钥不要写进提示词或仓库。[配置说明](docs/getting-started.md#transcription-configuration-and-consent)
+Agent 会读取仓库内的[安装与健康检查说明](docs/agent-bootstrap.md)，负责配置并报告实际结果。密钥通过安全配置提供，不粘贴到提示词或写进仓库。内置云转写需要上传音频且可能收费，使用前仍须你明确授权。
 
 ### 2. 给它录音，说出你想要的效果
 
 把路径换成你的真实文件，向 Agent 发送：
 
 ```text
-读取当前目录的 SKILL.md，使用 DraftCut。
+使用你刚安装的 DraftCut。
 把 /绝对路径/我的录音.wav 做成一条竖屏口播视频。
 保留我的声音，精剪口头禅、口误、重说和冗余停顿。
 先给我口播稿与修改依据，等我审核批准后生成精炼原声。
@@ -75,14 +71,6 @@ npm ci
 ### 3. 确认画面怎么讲，收下成片
 
 先审核口播稿，再审核视频导演脚本。两次确认后，Agent 继续制作、预览和导出 MP4。可编辑工程保留，方便继续修改。[审核操作](docs/approvals.md)
-
-## 从开口到成片
-
-![先审核口播稿的删改，再审核视频脚本的分镜、字幕与节奏，批准后制作成片。](https://raw.githubusercontent.com/PoetCoderJun/DraftCut/cc359ed78804c0de897f394e2c3bf5d4857508a6/assets/readme/draftcut-workflow-zh.svg)
-
-先整理声音，再决定画面怎么讲。导演脚本把构图、重点、素材与节奏放在一起，让你在制作前看清整条视频的走向。批准后，Agent 连续完成制作、检查与交付。
-
-**口播稿审核 → 视频脚本审核 → 成片。** 每次批准对应具体版本；修改内容后重新审核。[审核说明](docs/getting-started.md#what-you-review)
 
 [安装与使用](docs/getting-started.md) · [工程与验证](docs/harness-case-study.md) · [集成范围与兼容](docs/audio-first-migration.md) · [第三方许可](THIRD_PARTY_NOTICES.md)
 

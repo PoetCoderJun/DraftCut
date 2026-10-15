@@ -1,0 +1,58 @@
+# Agent 安装与健康检查 / Agent bootstrap
+
+**给执行 Agent 阅读。** 用户的唯一安装入口是把 https://github.com/PoetCoderJun/DraftCut 发给 Agent，要求安装配置并制作口播视频。不要让用户逐条执行下面的技术命令，也不要改成多个安装选项。安装结束后继续读取 [SKILL.md](../SKILL.md)；两次内容审核仍由用户完成。
+
+## 1. 找到安全的工作副本
+
+先读仓库 README、此文档和 SKILL。检查当前目录、已有安装、Git remote、分支与工作区。复用属于用户且版本合适的现有安装；有未提交改动或并行任务时，使用新的隔离副本，不能 reset、覆盖旧 Skill 或污染用户视频工程。不要仅凭目录名字判断仓库。
+
+需要新副本时，由 Agent 在选定的空路径执行：
+
+```bash
+git clone https://github.com/PoetCoderJun/DraftCut.git /chosen/empty/path/DraftCut
+cd /chosen/empty/path/DraftCut
+```
+
+记住实际安装路径；随后直接读取该路径的 `SKILL.md`。不要求用户理解安装目录、手工配置 Skill 发现机制或先运行另一个安装器。Agent 平台有自己的技能注册机制时，遵循该平台已知约定，并保留可直接读取 SKILL 的路径，不编造所有平台都已测试。
+
+## 2. 探测已有环境，补齐缺失项
+
+当前工作流使用 macOS/Linux POSIX、Python 3.10+、Node.js 22+、FFmpeg/ffprobe 和本机完整 Google Chrome。已实际验证 macOS，未认证所有操作系统／Agent。Apple Silicon 需要原生 ARM64 Node/Chrome。Hyperframes **0.8.30** 与 GSAP **3.14.2** 按锁文件安装；不升级，不自动下载 managed/headless-shell 浏览器。
+
+Agent 先用本机可用工具确认 Python/Node/FFmpeg/Chrome 的位置和版本，复用健康依赖。缺少系统组件时，沿用机器已有的可信软件管理方式安装或选择已有的正确版本；只对确实需要的系统权限／管理员操作请用户接手。不要自动安装新的系统包管理器、运行来源不明的下载脚本、换平台或让用户手工拼凑依赖。没有可用安装权限时准确报告缺少的组件与失败动作，继续完成不受影响的工作。
+
+由 Agent 运行：
+
+```bash
+python3 scripts/bootstrap.py --install
+```
+
+脚本使用项目 `.venv`，复用通过版本与依赖检查的 Python/Node 包；缺失或不符时执行项目内 `venv`、`pip install -r requirements.txt` 和锁定的 `npm ci`。不写全局 Python，不删除旧环境；已有不完整或伪装的 `.venv` 必须保留并改用安全副本。系统组件缺失会明确 blocked，交回 Agent 处理后重试。
+
+`--browser-executable /absolute/path/to/GoogleChrome` 只选择已经安装的完整 Chrome。脚本不会下载浏览器、创建审批身份、读取／打印密钥或调用转写服务。安装命令可能访问 Python/npm 软件仓库，需要按执行环境的正常网络授权路径操作；不能把网络失败写成安装完成。
+
+## 3. 检查能否实际工作
+
+安装后的脚本会检查包版本／依赖、运行锁定 CLI、在临时目录实际编码并完整解码 H.264/AAC，并让本机完整 Chrome 加载本地 GSAP。只绑定临时用户目录，不复用用户浏览器配置，不降低浏览器沙箱保护；检查结束清理自己的临时文件。环境限制阻止 Chrome 启动时，按正常工具授权路径处理，不能绕过安全设置或静默跳过检查。
+
+再次执行只检查、复用依赖的路径：
+
+```bash
+python3 scripts/bootstrap.py
+```
+
+读取 JSON 的 `status/actions/checks/blockers/runtime`，不能只看命令启动。`ready` 只说明本机依赖与基础媒体检查通过，不代表云 ASR 可用、人类审批已配置、真实声音自然或视频创作已经完成。失败为非零退出和 blocked。执行后向用户简要报告实际安装位置、复用／安装了什么、通过的检查与尚需授权的步骤。
+
+后续命令使用报告中的 Python，并让 Node 调用 Python 子进程时沿用同一环境，例如由 Agent 设置：
+
+```bash
+export PATH="/actual/DraftCut/.venv/bin:/actual/native-node/bin:$PATH"
+```
+
+上面的路径必须换成健康报告给出的真实路径。不要把这个配置任务转交给用户。
+
+## 4. 进入口播制作
+
+环境就绪后按 [SKILL](../SKILL.md) 接收真实录音与效果要求。已有可信逐词转写可以本地导入。内置 ASR 使用 DashScope，需要针对素材的上传／费用授权；环境通过不等于获得这项授权。通过 Agent 平台的安全配置／密钥入口请求必要凭据，不在聊天提示词中要求粘贴密钥，不写入 Git 或日志，也不替用户开通付费账户。
+
+没有素材和云授权时可运行 [完整合成 fixture](../examples/full-workflow/README.md) 作为本地流程证明。它不证明真实 ASR 或人类审批。真实制作仍须经过口播稿与视频脚本两次审核；用户的生产签名身份和私有口令按 [审批说明](approvals.md) 由本人保管，Agent 不代创建或代签。
