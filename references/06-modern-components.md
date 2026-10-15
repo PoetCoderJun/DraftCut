@@ -15,7 +15,7 @@ node <skill-root>/scripts/hf.mjs catalog --query "highlight a key phrase" --json
 结果中的 name 是实际安装名；查看条目说明和源码，确认是想要的效果再用。
 搜索结果较长时只向模型返回最相关几项。无需下载语义搜索模型即可先用词匹配。
 
-## 对 MotionTalk 有用的起点
+## 对 DraftCut 有用的起点
 
 | 表达需求 | 优先搜索/查看的组件 | 使用判断 |
 |---|---|---|
@@ -64,7 +64,7 @@ Lottie 适合现成动画资产；GSAP 适合花字、曲线和时间编排；Th
 > 用“竖屏个人 IP”作为视觉起点。先查 Catalog 里的曲线图和关键词高亮组件，统一成我的视觉风格，
 > 动态口播保持主体，B-roll 按语义穿插，MG 在人物旁边分步解释。复用好的实现，不保留演示文案。
 
-组件检索、安装、设计、render 都沿用 MotionTalk 的批准状态。不要运行上游整套 talking-head-recut
+组件检索、安装、设计、render 都沿用 DraftCut 的批准状态。不要运行上游整套 talking-head-recut
 或迁移 skill 来重新转写、要求额外批准、逐场景截图。安装组件不代表上传素材；没有明确要求时
 不运行 publish、feedback、file-issue、云渲染或其他外部发布命令。
 

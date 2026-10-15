@@ -1,8 +1,8 @@
-# MotionTalk：可检查的 Agent Harness 工程案例
+# DraftCut：可检查的 Agent Harness 工程案例
 
 [English](harness-case-study.en.md) · [项目](../README.md)
 
-音频到成片同时需要创意判断与机械约束。MotionTalk 将它们拆开，让人能检查决定、产物与脚本各自承担什么。
+音频到成片同时需要创意判断与机械约束。DraftCut 将它们拆开，让人能检查决定、产物与脚本各自承担什么。
 
 | 阶段 | 可审查记录 | 机械边界 |
 | --- | --- | --- |
@@ -30,7 +30,7 @@ python3 examples/plan-validation/run.py
 python3 -m unittest discover -s tests -v
 python3 -m unittest discover -s scripts/tests -v
 node --test tests/*.test.mjs
-python3 examples/audio-only-smoke/run.py --output-dir /tmp/motiontalk-fresh-smoke --render
+python3 examples/audio-only-smoke/run.py --output-dir /tmp/draftcut-fresh-smoke --render
 ```
 
 最后一条命令用合成声音与作者编写时间戳，不调用云 ASR、不用私人录音。需要固定依赖、FFmpeg、本机 Chrome。只验证纯音频工程可渲染，不证明真实 ASR 准确率、自然气口判断、创意质量或耗时成本收益。见 [迁移说明](audio-first-migration.md)。

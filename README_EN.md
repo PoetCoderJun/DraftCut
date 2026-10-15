@@ -1,99 +1,114 @@
-[English home](README.md) · [简体中文](README.zh-CN.md)
+[简体中文](README.md) · **English**
 
-# MotionTalk
+# DraftCut
 
-**From your audio recording to a complete social video.**
+## Speak your ideas. Give them a screen.
 
-Bring an audio file, optionally a folder of materials. MotionTalk handles transcription and matching subtitles internally, asks whether you want selective breath-gap trimming, develops the visual story with you, and produces an MP4 through Hyperframes. No presenter video or user-prepared SRT is required.
+Give your Agent a recording. DraftCut keeps your voice, tightens selected breath gaps, and brings your ideas to life with captions, diagrams and motion—a concise, polished spoken video.
 
-[Get started](#quickstart) · [Creator work](#creator-work) · [工程案例](docs/harness-case-study.md)
+**Start with one audio file.** No presenter footage, prepared subtitles or manual timeline layout required.
 
-Non-commercial use under [CC BY-NC-SA 4.0](LICENSE.md). Commercial use requires prior written permission. Third-party materials keep their own licenses.
+[Get started](#get-started) · [See the visual possibilities](#help-people-see-what-you-mean) · [How it works](#from-recording-to-finished-video)
 
-## Quickstart
+![DraftCut turns a natural recording into a video with tighter pacing, captions and visual explanation. Original conceptual illustration.](assets/readme/draftcut-story-en.svg)
 
-Install the Skill in an Agent that can read local files/images and run commands:
+Our ambition: **100× less hands-on editing** for spoken videos, so you can spend more time expressing ideas. This is a product goal, not a measured guarantee. No comparative benchmark has established it; time depends on the material, Agent, human review and rendering environment.
 
-```bash
-npx skills add PoetCoderJun/MotionTalk
-```
+## Still your voice. A tighter delivery.
 
-```text
-Use $motiontalk with /data/my-audio.wav.
-I want a complete social video explaining the ideas in my recording.
-Optional materials: /data/materials.
-```
+Pausing to find your next thought is natural. The finished video can move a little faster.
 
-If you have not said whether to trim breath gaps, the Agent asks first. If yes, it listens and selects suitable gaps, compressing only those gaps to 0.25 seconds by default. If no, it preserves the original timeline. Word gaps are not automatically classified as breaths; fillers, mistakes and retakes are not removed without separate instructions.
+You decide whether to trim breath gaps. The Agent uses word timings and actual listening to select suitable intervals, keeping **0.25 seconds** in each selected gap by default. Meaningful pauses stay. Choose no trimming to preserve the original timeline.
 
-The Agent progressively resolves the publishing format, creative idea, optional materials, visual style and optional reference videos. None of the optional inputs is required. Review the director plan before production, or explicitly authorize an unattended run. Publishing remains your action.
+The voice comes from your recording. Captions follow the same edited timeline, while diagrams, demonstrations and animated text bring out the ideas. **The integrated editing scope is breath gaps.** Semantic removal of fillers, mistakes and retakes is not yet integrated; this workflow does not automatically rewrite your speech.
 
-## What you get
+## Help people see what you mean
 
-- A complete MP4 with the spoken story, visual explanation and pacing designed together.
-- Prepared audio and matching internal SRT, with a sample-based edit report.
-- A reviewable director plan, editable HTML/CSS/GSAP project and technical delivery report.
+Explain a process with unfolding steps. Compare ideas side by side. Show a product as you describe it. Bring your own materials and a reference video—or start with just your voice and let the Agent design around the content.
 
-The initializer creates a scaffold; the Agent still has to produce and inspect the visual story. A few title cards or a successful render do not establish creative quality.
+| What you are explaining | How the visuals can help |
+| --- | --- |
+| A complex idea | Diagrams reveal the relationships as the argument develops |
+| A method or workflow | Steps, screenshots and screen recordings follow the explanation |
+| A personal perspective | Key phrases and supporting footage shape the rhythm; optional presenter footage keeps you in frame |
 
-## Creator work
+![An accelerated excerpt from the author's existing Vibe Working video, combining diagrams, presenter footage and a screen demonstration](assets/examples/vibe-working-6x.gif)
 
-### Vibe Working: visual explanations and screen demonstrations
+An existing creator video, 00:39–01:27, shown **6× faster without sound**. It illustrates visual possibilities, not end-to-end validation of the current recording-to-video workflow.
 
-![Existing creator video showing animated workflow diagrams, a presenter and a screen demonstration at 6× speed](assets/examples/vibe-working-6x.gif)
+[Another diagram example](assets/examples/embodied-correction-6x.gif) · [More creator videos](https://www.xiaohongshu.com/user/profile/5b40fe744eacab72c9f480ef)
 
-00:39–01:27 from Jun’s existing Vibe Working video, condensed to about 8 seconds at **6× speed**.
+## Work in the Agent you already use
 
-### Embodied AI: diagrams that follow the argument
+DraftCut is an Agent Skill: a production method the Agent reads and executes with local tools. Agents that can read files, run commands, inspect visuals and actually listen to audio can attempt this workflow. We have not verified every Agent.
 
-![Existing embodied-AI explainer showing progressive diagrams, captions and a presenter at 6× speed](assets/examples/embodied-correction-6x.gif)
+The project author recommends **Opus 5.5, ChatGPT 6 Astra and Kimi k3** as creative-model choices. These are recommendations, not compatibility certifications; model availability and tool support depend on your platform. A chat-only environment cannot complete local production on its own.
 
-The final 30 seconds of Jun’s existing embodied-AI explainer, condensed to about 5 seconds at **6× speed**.
+## Get started
 
-These silent GIFs are excerpts from the author’s existing finished videos, not end-to-end validation of this audio-first version.
+### 1. Set up once
 
-**[More example videos · 诗人程序员Jun.AI on Xiaohongshu](https://www.xiaohongshu.com/user/profile/5b40fe744eacab72c9f480ef)**
-
-## Setup and data path
-
-Python 3.10+, FFmpeg/ffprobe, Node >=22 and a local full Google Chrome are required. In the installed Skill directory, install the reviewed dependencies:
+You need **Python 3.10+, Node.js 22+, FFmpeg/ffprobe and a local full Google Chrome**. In a macOS/Linux terminal:
 
 ```bash
+git clone https://github.com/PoetCoderJun/DraftCut.git
+cd DraftCut
+python3 -m venv .venv
+. .venv/bin/activate
 python3 -m pip install -r requirements.txt
 npm ci
 ```
 
-The lockfile pins Hyperframes 0.8.30 and GSAP 3.14.2. The built-in DashScope ASR needs service configuration (including DASHSCOPE_API_KEY) and explicit upload/charge authorization. It uploads an audio proxy to the service, polls an asynchronous task and retrieves the result; it is not offline ASR. Local rendering does not make the entire workflow local. The selected Agent’s own data handling also applies. See [audio preparation](references/00-audio.md).
+Work with your Agent in this directory using this Python environment. An alternative [Skill installation](docs/getting-started.md#skill-installation) is also available.
 
-Hardware H.264 and one worker are the default. An explicit software mode is available when hardware support is unsuitable; runtime and browser downloads are not automatic. Optional external assets/components need source and license checks.
+Built-in transcription uses DashScope. Supply `DASHSCOPE_API_KEY` through your Agent's secure environment configuration. **Audio is uploaded to that service and charges may apply; explicit authorization is required.** Keep keys out of prompts and Git. See [configuration, video input and troubleshooting](docs/getting-started.md).
 
-## Checks and limitations
+### 2. Give it a recording and a direction
 
-Transcription can mishear words or timestamps. Selective gap edits depend on listening review and usable word timings; they are not an automatic breath detector. Direct splicing can need manual boundary refinement. The no-trim path preserves timing while normalizing the audio container/sample rate.
+Replace these paths with your real files, then send your Agent:
 
-Technical scripts check structure, sample-based editing, subtitle remapping, dimensions, codecs and audio/video duration. Continuous visual review and actual listening are separate. Approval/state fields are workflow records, not authenticated signatures. The renderer checks the recorded review state, not the truth of the evidence. No customers, deployment metrics, timing or cost savings are claimed.
-
-## Engineering and local checks
-
-Read the [Harness case study](docs/harness-case-study.en.md) for the code’s current gates and limits. Run after installing the pinned dependencies:
-
-```bash
-python3 -m unittest discover -s tests -v
-python3 -m unittest discover -s scripts/tests -v
-node --test tests/*.test.mjs
-python3 examples/plan-validation/run.py
+```text
+Read SKILL.md in the current directory and use DraftCut.
+Turn /absolute/path/my-recording.wav into a vertical spoken video.
+Keep my voice. Trim only breath gaps selected after listening; do not remove spoken content.
+Use key phrases and diagrams to support the explanation.
+Show me the video director script for approval before production.
+Write to /absolute/path/new-video-output, a new empty directory.
 ```
 
-Tests use synthetic input/mock service results and do not call cloud models. A synthetic audio-only rendering smoke test is documented in [the example](examples/audio-only-smoke/README.md); it is a technical check, not a creator showcase.
+Add materials or a reference video if you have them. Neither is required. For an existing talking video, ask the Agent to use its original audio and specify whether to keep the presenter footage as a visual asset. See [audio extraction](docs/getting-started.md#video-input).
 
-## Compatibility and licenses
+### 3. Approve the visual story. Get your video.
 
-[clean-talking-video](https://github.com/PoetCoderJun/clean-talking-video) remains operational for the existing video-editing workflow. [dingtalk-style-minutes](https://github.com/PoetCoderJun/dingtalk-style-minutes) keeps its existing clean-talking-video dependency. Neither repository is archived or removed by this integration.
+The Agent works through the publishing format, idea and style with you, then delivers a reviewable video director script. Once approved, it continues through captions, visual production, preview, checks and MP4 export. The editable project stays available for revisions.
 
-See [migration notes](docs/audio-first-migration.md) and [third-party notices](THIRD_PARTY_NOTICES.md). The root license is unchanged; commercial use requires separate prior written permission.
+## From recording to finished video
 
-<!-- Compatibility anchors for previously published links. -->
+![The actual workflow: record, select and tighten breath gaps, approve the video director script, produce and check the final video.](assets/readme/draftcut-workflow-en.svg)
+
+1. **Bring a recording.** Choose whether to trim breath gaps. Authorize upload and possible charges before cloud transcription.
+2. **Prepare the audio.** Transcribe and review content; listen to candidate gaps, edit only selected intervals and align captions.
+3. **Approve the video script.** Review how the screen tells the story: composition, emphasis, assets, pacing and timing. The default review covers `MG导演脚本.md` and its companion plan.
+4. **Produce and check.** The Agent builds the visuals, previews continuously, listens, exports and validates the deliverable.
+
+There is currently one default human creative-approval gate: **the video director script**. Breath selection and cloud-service authorization are earlier decisions. Content review is part of audio preparation; an independent “approved spoken manuscript” gate is not implemented. To review the full transcript first, explicitly ask your Agent to pause for your confirmation.
+
+## Go further
+
+[Setup and usage](docs/getting-started.md) · [Engineering and validation](docs/harness-case-study.en.md) · [Integration and compatibility](docs/audio-first-migration.md) · [Third-party notices](THIRD_PARTY_NOTICES.md)
+
+Transcription can mishear words; cuts need listening and visuals need continuous review. A successful export alone does not establish content, sound or creative quality. The 100× goal is not a performance guarantee. Engineering docs explain what the checks do and do not cover.
+
+DraftCut was previously MotionTalk. Existing project formats remain compatible; new installations use the `draftcut` Skill name. Licensed for non-commercial use under [CC BY-NC-SA 4.0](LICENSE.md). Commercial use requires prior written permission; third-party materials retain their own licenses.
+
+<!-- Compatibility anchors for previously published README links. -->
+<a id="quickstart"></a>
+<a id="creator-work"></a>
+<a id="what-you-get"></a>
+<a id="setup-and-data-path"></a>
 <a id="checks-and-limitations"></a>
+<a id="engineering-and-local-checks"></a>
+<a id="compatibility-and-licenses"></a>
 <a id="core-capabilities"></a>
 <a id="development"></a>
 <a id="first-run"></a>

@@ -1,99 +1,113 @@
-**English** · [简体中文](README.zh-CN.md)
+**简体中文** · [English](README_EN.md)
 
-# MotionTalk
+# DraftCut
 
-**From your audio recording to a complete social video.**
+## 只管说，让好想法变成好视频。
 
-Bring an audio file, optionally a folder of materials. MotionTalk handles transcription and matching subtitles internally, asks whether you want selective breath-gap trimming, develops the visual story with you, and produces an MP4 through Hyperframes. No presenter video or user-prepared SRT is required.
+把录音交给你的 Agent。DraftCut 保留你的声音，收紧多余气口，让字幕、图解和画面跟着你的表达展开，做成一条精炼、精美的口播视频。
 
-[Get started](#quickstart) · [Creator work](#creator-work) · [工程案例](docs/harness-case-study.md)
+**一段录音就能开始。** 不用先拍人物视频、做字幕，或在时间线上逐帧摆素材。
 
-Non-commercial use under [CC BY-NC-SA 4.0](LICENSE.md). Commercial use requires prior written permission. Third-party materials keep their own licenses.
+[开始制作](#开始制作) · [看看效果](#让观众看懂你在说什么) · [工作流程](#从开口到成片)
 
-## Quickstart
+![DraftCut：自然说出的想法，经过气口整理和视觉设计，成为有字幕与图解的视频。原创示意图。](assets/readme/draftcut-story-zh.svg)
 
-Install the Skill in an Agent that can read local files/images and run commands:
+我们的目标：让口播视频的人工剪辑投入缩短 **100 倍**，把时间还给表达。这是产品愿景，尚无对照基准证明；实际耗时取决于素材、Agent、人工审核与渲染环境。
 
-```bash
-npx skills add PoetCoderJun/MotionTalk
-```
+## 还是你的声音，表达更利落
 
-```text
-Use $motiontalk with /data/my-audio.wav.
-I want a complete social video explaining the ideas in my recording.
-Optional materials: /data/materials.
-```
+说完一句，停下来想想下一句，很自然。成片可以更紧凑。
 
-If you have not said whether to trim breath gaps, the Agent asks first. If yes, it listens and selects suitable gaps, compressing only those gaps to 0.25 seconds by default. If no, it preserves the original timeline. Word gaps are not automatically classified as breaths; fillers, mistakes and retakes are not removed without separate instructions.
+你选择是否剪气口，Agent 再结合转写和实际试听，筛选适合压缩的间隙。选中的气口默认收至 **0.25 秒**；有意义的思考与强调停顿留下。不剪，就保留原来的时间线。
 
-The Agent progressively resolves the publishing format, creative idea, optional materials, visual style and optional reference videos. None of the optional inputs is required. Review the director plan before production, or explicitly authorize an unattended run. Publishing remains your action.
+声音来自你的原始录音。字幕跟着同一条剪辑时间线调整，重点再用图解、演示或动态文字展开。**当前自动化精剪范围是气口**；填充词、口误和重说的语义删除尚未集成，不能把“去冗余”理解为自动重写你的表达。
 
-## What you get
+## 让观众看懂你在说什么
 
-- A complete MP4 with the spoken story, visual explanation and pacing designed together.
-- Prepared audio and matching internal SRT, with a sample-based edit report.
-- A reviewable director plan, editable HTML/CSS/GSAP project and technical delivery report.
+讲步骤，就让步骤逐个出现。讲差异，就把对象放在一起比较。讲产品，就让演示跟上讲解。你可以给一份素材、一条参考片，也可以只给录音，让 Agent 从内容设计画面。
 
-The initializer creates a scaffold; the Agent still has to produce and inspect the visual story. A few title cards or a successful render do not establish creative quality.
+| 你在讲什么 | 画面可以怎么表达 |
+| --- | --- |
+| 一个复杂的观点 | 图解跟着论证展开，突出关键关系 |
+| 一套方法或操作 | 步骤、截图、录屏随讲解推进 |
+| 一段个人表达 | 用重点文字与补充画面强化节奏；有人物素材时可加入人物构图 |
 
-## Creator work
+![作者既有 Vibe Working 成片的加速片段，展示图解、人物和录屏的配合](assets/examples/vibe-working-6x.gif)
 
-### Vibe Working: visual explanations and screen demonstrations
+作者既有成片片段，原片 00:39–01:27，**6 倍速、无声**。这是视觉表达参考，并非当前录音到成片流程的端到端验收。
 
-![Existing creator video showing animated workflow diagrams, a presenter and a screen demonstration at 6× speed](assets/examples/vibe-working-6x.gif)
+[再看一个图解示例](assets/examples/embodied-correction-6x.gif) · [作者的更多视频](https://www.xiaohongshu.com/user/profile/5b40fe744eacab72c9f480ef)
 
-00:39–01:27 from Jun’s existing Vibe Working video, condensed to about 8 seconds at **6× speed**.
+## 在你习惯的 Agent 里使用
 
-### Embodied AI: diagrams that follow the argument
+DraftCut 是一份 Agent Skill：让 Agent 读懂制作方法，再调用本地工具完成视频。只要它能读本地文件、运行命令，并实际查看画面和试听音频，就可以尝试接入；这不代表所有 Agent 都已测试通过。
 
-![Existing embodied-AI explainer showing progressive diagrams, captions and a presenter at 6× speed](assets/examples/embodied-correction-6x.gif)
+项目作者推荐 **Opus 5.5、ChatGPT 6 Astra、Kimi k3**。这是创作模型的选择建议，不是兼容性认证；以你使用的平台实际可选模型和工具能力为准。只有聊天、没有文件和执行能力的环境，无法独立完成本地制作。
 
-The final 30 seconds of Jun’s existing embodied-AI explainer, condensed to about 5 seconds at **6× speed**.
+## 开始制作
 
-These silent GIFs are excerpts from the author’s existing finished videos, not end-to-end validation of this audio-first version.
+### 1. 准备一次环境
 
-**[More example videos · 诗人程序员Jun.AI on Xiaohongshu](https://www.xiaohongshu.com/user/profile/5b40fe744eacab72c9f480ef)**
-
-## Setup and data path
-
-Python 3.10+, FFmpeg/ffprobe, Node >=22 and a local full Google Chrome are required. In the installed Skill directory, install the reviewed dependencies:
+需要 **Python 3.10+、Node.js 22+、FFmpeg/ffprobe 和本机完整 Google Chrome**。在 macOS/Linux 终端执行：
 
 ```bash
+git clone https://github.com/PoetCoderJun/DraftCut.git
+cd DraftCut
+python3 -m venv .venv
+. .venv/bin/activate
 python3 -m pip install -r requirements.txt
 npm ci
 ```
 
-The lockfile pins Hyperframes 0.8.30 and GSAP 3.14.2. The built-in DashScope ASR needs service configuration (including DASHSCOPE_API_KEY) and explicit upload/charge authorization. It uploads an audio proxy to the service, polls an asynchronous task and retrieves the result; it is not offline ASR. Local rendering does not make the entire workflow local. The selected Agent’s own data handling also applies. See [audio preparation](references/00-audio.md).
+让 Agent 在这个目录工作，使用这里的 Python 环境。也可以通过 [Skill 安装方式](docs/getting-started.md#skill-installation) 加入现有工具。
 
-Hardware H.264 and one worker are the default. An explicit software mode is available when hardware support is unsuitable; runtime and browser downloads are not automatic. Optional external assets/components need source and license checks.
+内置转写使用 DashScope。通过 Agent 的安全环境配置提供 `DASHSCOPE_API_KEY`；**音频会上传到该服务，可能产生费用，需要你明确授权**。不要把密钥写进提示词或提交到仓库。[配置、视频输入与常见问题](docs/getting-started.md)
 
-## Checks and limitations
+### 2. 给它录音，说出你想要的效果
 
-Transcription can mishear words or timestamps. Selective gap edits depend on listening review and usable word timings; they are not an automatic breath detector. Direct splicing can need manual boundary refinement. The no-trim path preserves timing while normalizing the audio container/sample rate.
+把路径换成你的真实文件，向 Agent 发送：
 
-Technical scripts check structure, sample-based editing, subtitle remapping, dimensions, codecs and audio/video duration. Continuous visual review and actual listening are separate. Approval/state fields are workflow records, not authenticated signatures. The renderer checks the recorded review state, not the truth of the evidence. No customers, deployment metrics, timing or cost savings are claimed.
-
-## Engineering and local checks
-
-Read the [Harness case study](docs/harness-case-study.en.md) for the code’s current gates and limits. Run after installing the pinned dependencies:
-
-```bash
-python3 -m unittest discover -s tests -v
-python3 -m unittest discover -s scripts/tests -v
-node --test tests/*.test.mjs
-python3 examples/plan-validation/run.py
+```text
+读取当前目录的 SKILL.md，使用 DraftCut。
+把 /绝对路径/我的录音.wav 做成一条竖屏口播视频。
+保留我的声音，剪掉试听确认适合压缩的气口，不删除口播内容。
+让重点和图解跟着讲解展开。先把视频导演脚本交给我审核，确认后再制作。
+输出到 /绝对路径/本次视频输出（新的空目录）。
 ```
 
-Tests use synthetic input/mock service results and do not call cloud models. A synthetic audio-only rendering smoke test is documented in [the example](examples/audio-only-smoke/README.md); it is a technical check, not a creator showcase.
+有素材或参考片就一并提供，没有也能开始。已有口播视频时，告诉 Agent 使用其中的原声，并明确是否把人物画面作为素材保留；[音频提取方法](docs/getting-started.md#video-input)见文档。
 
-## Compatibility and licenses
+### 3. 确认画面怎么讲，收下成片
 
-[clean-talking-video](https://github.com/PoetCoderJun/clean-talking-video) remains operational for the existing video-editing workflow. [dingtalk-style-minutes](https://github.com/PoetCoderJun/dingtalk-style-minutes) keeps its existing clean-talking-video dependency. Neither repository is archived or removed by this integration.
+Agent 会与你逐步确定发布版式、想法和风格，交付可审核的视频导演脚本。批准后，继续完成字幕、视觉制作、预览检查和 MP4 导出。你拿到的是视频；可编辑工程保留，方便继续修改。
 
-See [migration notes](docs/audio-first-migration.md) and [third-party notices](THIRD_PARTY_NOTICES.md). The root license is unchanged; commercial use requires separate prior written permission.
+## 从开口到成片
 
-<!-- Compatibility anchors for previously published links. -->
+![真实流程：录音输入、按选择整理气口、审核视频导演脚本、视觉制作并交付视频。](assets/readme/draftcut-workflow-zh.svg)
+
+1. **给出录音。** 明确剪不剪气口；需要云转写时，确认上传与费用授权。
+2. **整理声音。** 转写并复核内容；选择剪气口时逐段试听，只处理选中的间隙，同步字幕。
+3. **审核视频脚本。** 你确认的是画面如何讲述：构图、重点、素材、节奏与对应的时间安排。默认审核对象是 `MG导演脚本.md` 及其配套计划。
+4. **制作并检查。** Agent 实现视觉、连续预览、试听、导出和技术校验，再交付成片。
+
+当前默认有一个人工创意审核点：**视频导演脚本**。气口选择与云服务授权是前置决定。录音内容复核属于音频准备，尚没有独立的“口播稿审核通过”门禁；因此当前不能描述为“两次审核已自动串联”。若你希望先看完整转写再继续，可在任务中明确要求 Agent 暂停等待确认。
+
+## 再往里看
+
+[安装与使用](docs/getting-started.md) · [工程原理与验证](docs/harness-case-study.md) · [集成范围与兼容](docs/audio-first-migration.md) · [第三方许可](THIRD_PARTY_NOTICES.md)
+
+转写可能有错，剪口需要试听，画面需要连续观看；导出成功不等于内容、听感和视觉都已过关。100 倍目标不作为性能保证。当前验证与尚未覆盖的部分见工程文档。
+
+DraftCut 原名 MotionTalk。已有项目格式保留兼容；安装入口和新 Skill 名称使用 `draftcut`。本项目按 [CC BY-NC-SA 4.0](LICENSE.md) 提供，限非商业使用；商业使用需事先取得书面授权，第三方素材遵循各自许可。
+
+<!-- Compatibility anchors for previously published README links. -->
+<a id="quickstart"></a>
+<a id="creator-work"></a>
+<a id="what-you-get"></a>
+<a id="setup-and-data-path"></a>
 <a id="checks-and-limitations"></a>
+<a id="engineering-and-local-checks"></a>
+<a id="compatibility-and-licenses"></a>
 <a id="core-capabilities"></a>
 <a id="development"></a>
 <a id="first-run"></a>

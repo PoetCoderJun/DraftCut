@@ -23,3 +23,6 @@ mg-output/
 *.key
 
 .renders/
+
+# Isolated Python setup
+.venv/

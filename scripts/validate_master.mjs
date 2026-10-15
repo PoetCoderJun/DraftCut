@@ -38,7 +38,7 @@ async function main() {
     evidence:{media:metadata}};
   await writeFile(path.join(output,'quality-report.v1.json'),JSON.stringify(report,null,2)+'\n');
   if(!passed)throw new Error('Technical check failed: '+Object.entries(checks).filter(([,v])=>!v).map(([k])=>k).join(', '));
-  console.log('MotionTalk technical checks: passed');
+  console.log('DraftCut technical checks: passed');
 }
 if(process.argv[1] && path.resolve(process.argv[1])===fileURLToPath(import.meta.url))
   main().catch(e=>{console.error(e.message);process.exitCode=1;});

@@ -1,8 +1,8 @@
-# MotionTalk: an inspectable Agent Harness case study
+# DraftCut: an inspectable Agent Harness case study
 
 [中文](harness-case-study.md) · [Project](../README.md)
 
-Turning audio into a social video combines open creative judgment with mechanical constraints. MotionTalk separates them so reviewers can inspect both the decisions and the code.
+Turning audio into a social video combines open creative judgment with mechanical constraints. DraftCut separates them so reviewers can inspect both the decisions and the code.
 
 | Stage | Reviewable record | Mechanical boundary |
 | --- | --- | --- |
@@ -30,7 +30,7 @@ python3 examples/plan-validation/run.py
 python3 -m unittest discover -s tests -v
 python3 -m unittest discover -s scripts/tests -v
 node --test tests/*.test.mjs
-python3 examples/audio-only-smoke/run.py --output-dir /tmp/motiontalk-fresh-smoke --render
+python3 examples/audio-only-smoke/run.py --output-dir /tmp/draftcut-fresh-smoke --render
 ```
 
 The last command uses a generated tone and authored timestamps, no cloud ASR or private input. It requires pinned runtime dependencies, FFmpeg and local Chrome. It verifies that an audio-only composition can render, not creative quality, real ASR accuracy, natural breath selection or a cost/time benchmark. See [migration notes](audio-first-migration.md).

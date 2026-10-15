@@ -24,7 +24,7 @@ export function scaffold(plan, captions) {
   const cueHtml = plan.cues.map((c,i)=>`<section id="scene-${i}" class="clip scene" data-start="${c.start_seconds}" data-duration="${c.end_seconds-c.start_seconds}" data-track-index="1"><div id="headline-${i}" class="headline">${escapeHtml(c.title || c.visual_prompt)}</div></section>`).join('\n');
   const motion = plan.cues.map((c,i)=>`timeline.fromTo('#headline-${i}',{y:24,autoAlpha:0},{y:0,autoAlpha:1,duration:0.25},${c.start_seconds});`).join('\n');
   return `<!doctype html>
-<html lang="${escapeHtml(plan.language || 'zh-CN')}"><head><meta charset="utf-8"><title>MotionTalk</title>
+<html lang="${escapeHtml(plan.language || 'zh-CN')}"><head><meta charset="utf-8"><title>DraftCut</title>
 <script src="assets/gsap.min.js"></script><link rel="stylesheet" href="theme.css"></head>
 <body><div id="master" data-composition-id="master" data-start="0" data-duration="${duration}" data-width="${w}" data-height="${h}" data-fps="${fps}">
 <div id="background" class="background"></div>

@@ -3,7 +3,7 @@
 From the repository root, after installing the pinned dependencies and local Chrome:
 
 ```bash
-python3 examples/audio-only-smoke/run.py --output-dir /tmp/motiontalk-new-smoke --render
+python3 examples/audio-only-smoke/run.py --output-dir /tmp/draftcut-new-smoke --render
 ```
 
 Creates a newly synthesized two-second tone/silence recording, authored timestamp fixture, prepared WAV/SRT and a Hyperframes project with **no video element**. Lints, explicitly renders in software smoke mode, then checks H.264/AAC, dimensions, frame rate and both media durations. Choose a new empty directory. Without `--render`, it only prepares, initializes and lints.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate an approved prompt-first MotionTalk placement plan."""
+"""Validate an approved prompt-first DraftCut placement plan."""
 
 from __future__ import annotations
 
@@ -114,7 +114,7 @@ def validate(plan: dict) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate an approved prompt-first MotionTalk plan"
+        description="Validate an approved prompt-first DraftCut plan"
     )
     parser.add_argument("--plan", type=Path, required=True)
     args = parser.parse_args()
@@ -123,7 +123,7 @@ def main() -> int:
         for error in errors:
             print(f"ERROR: {error}")
         return 1
-    print("MotionTalk prompt-first plan: passed")
+    print("DraftCut prompt-first plan: passed")
     return 0
 
 

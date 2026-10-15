@@ -1,5 +1,5 @@
 {
-  "name": "motiontalk-hyperframes-runtime",
+  "name": "draftcut-hyperframes-runtime",
   "private": true,
   "type": "module",
   "engines": {"node": ">=22"},

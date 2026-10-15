@@ -13,7 +13,7 @@ const LOCAL_BROWSER_CANDIDATES = [ // macOS / Linux / Windows
 ];
 
 export const resolveBrowserExecutable = (value) => {
-  if (value === "managed") throw new Error("MotionTalk requires local full Chrome; managed is not supported.");
+  if (value === "managed") throw new Error("DraftCut requires local full Chrome; managed is not supported.");
   const found = value ? path.resolve(value) : LOCAL_BROWSER_CANDIDATES.find((candidate) => existsSync(candidate));
   if (!found)
     throw new Error(

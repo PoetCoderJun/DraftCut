@@ -1,9 +1,9 @@
 ---
-name: motiontalk
+name: draftcut
 description: Turn an audio recording into a complete social video with internal ASR, explicitly chosen breath-gap editing, a progressive creative brief and audio-driven Hyperframes production. Optional materials and reference videos are welcome; user video and SRT are not required.
 ---
 
-# MotionTalk
+# DraftCut
 
 唯一必需的用户素材是音频文件；素材文件夹和参考成片可选。内部生成转写、逐词时间戳和匹配 SRT，不要求用户先准备视频或字幕。目标是完整 MP4、导演计划与检查报告，初始化模板本身不算成片。
 
@@ -41,4 +41,4 @@ init_project.mjs 创建 **scaffold**，需实际制作后记录连续预览证�
 
 入口：transcribe_audio.py、prepare_audio.py、validate_plan.py、init_project.mjs、hf.mjs、render_master.mjs、validate_master.mjs。可选方向见 [参考](references/04-reference-theme-prompt.md)。仅在用户要求倍速、响度或失真修复时读 [音频母带](references/05-social-loudness.md)，同步重映射字幕与视觉。可选组件见 [组件](references/06-modern-components.md)，核对来源与许可后安装。
 
-保留原音频、已有项目和旧版本，在新空目录生成内部产物。旧 clean-talking-video 与 Minutes 的既有依赖保留。不自动发布或上传。遵守 [LICENSE.md](LICENSE.md) 非商业条款，商业使用须事先书面授权；第三方材料适用自身许可。
+保留原音频、已有项目和旧版本，在新空目录生成内部产物。已有项目格式与集成依赖保留，兼容说明见 [迁移文档](docs/audio-first-migration.md)。不自动发布或上传。遵守 [LICENSE.md](LICENSE.md) 非商业条款，商业使用须事先书面授权；第三方材料适用自身许可。

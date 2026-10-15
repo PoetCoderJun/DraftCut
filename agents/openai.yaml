@@ -1,4 +1,4 @@
 interface:
-  display_name: "MotionTalk"
+  display_name: "DraftCut"
   short_description: "从音频到完整社交视频：转写、可选气口剪辑与视觉制作"
-  default_prompt: "Use $motiontalk with my audio and optional material folder. Ask whether to trim breath gaps, resolve the creative brief progressively, and create a complete social video."
+  default_prompt: "Use $draftcut with my audio and optional material folder. Ask whether to trim breath gaps, resolve the creative brief progressively, and create a complete social video."

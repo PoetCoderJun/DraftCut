@@ -19,7 +19,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2), ['project_dir','plan','output','video_bitrate','browser_executable','workers','encoding','purpose']);
   if (args.help) return console.log('Usage: node render_master.mjs --project-dir DIR/hyperframes --plan PLAN.json --output FINAL.mp4 [--video-bitrate 12M] [--browser-executable CHROME]\nDefault: one worker, native Chrome, hardware H.264. --encoding software is explicit. --purpose smoke permits unfinished synthetic scaffolds; production requires recorded visual review.');
   if (!args.project_dir || !args.plan || !args.output) throw new Error('--project-dir, --plan and --output are required');
-  if (args.workers !== undefined && args.workers !== '1') throw new Error('MotionTalk requires --workers 1');
+  if (args.workers !== undefined && args.workers !== '1') throw new Error('DraftCut requires --workers 1');
   const encoding = args.encoding || 'hardware', purpose = args.purpose || 'production';
   if (!['hardware','software'].includes(encoding) || !['production','smoke'].includes(purpose)) throw new Error('Invalid encoding or purpose');
   const projectDir = path.resolve(args.project_dir), output = path.resolve(args.output);
