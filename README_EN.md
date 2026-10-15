@@ -10,7 +10,7 @@ Give your Agent a recording. DraftCut keeps your voice, refines fillers, mistake
 
 [Get started](#get-started) · [See the visual possibilities](#help-people-see-what-you-mean) · [How it works](#from-recording-to-finished-video)
 
-![DraftCut: speak naturally, approve a refined edit of your original voice, and turn it into a polished video with visual explanations. Original static frames.](assets/readme/draftcut-story-en.svg)
+![DraftCut: speak naturally, approve a refined edit of your original voice, and turn it into a polished video with visual explanations. Original static frames.](assets/readme/draftcut-story-en.svg?v=cc359ed)
 
 Our ambition: **100× less hands-on editing** for spoken videos, so you can spend more time expressing ideas. This goal has not yet been benchmarked.
 
@@ -79,7 +79,7 @@ Review the spoken manuscript, then the video director script. After both approva
 
 ## From recording to finished video
 
-![Review the spoken edits, approve the visual script with scenes and captions, then produce the finished video.](assets/readme/draftcut-workflow-en.svg)
+![Review the spoken edits, approve the visual script with scenes and captions, then produce the finished video.](assets/readme/draftcut-workflow-en.svg?v=cc359ed)
 
 Prepare the voice, then shape the visual story. The director script brings composition, emphasis, assets and pacing together so you can see where the video is heading before production. Once approved, the Agent continues through production, review and delivery.
 
