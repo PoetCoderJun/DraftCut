@@ -60,13 +60,8 @@ The Agent follows the repository's [installation and health-check guide](docs/ag
 Replace these paths with your real files, then send your Agent:
 
 ```text
-Use the DraftCut you just installed.
-Turn /absolute/path/my-recording.wav into a vertical spoken video.
-Keep my voice. Refine fillers, mistakes, retakes and redundant pauses.
-Show me the spoken manuscript and edit reasons for approval before creating the refined audio.
-Use key phrases and diagrams to support the explanation.
-Show me the video director script for approval before production.
-Write to /absolute/path/new-video-output, a new empty directory.
+Please use the DraftCut Skill to turn /absolute/path/my-recording.wav into a video.
+The style and feel I want is…
 ```
 
 Add materials or a reference video if you have them. For an existing talking video, you can [use its original audio and footage](docs/getting-started.md#video-input).
