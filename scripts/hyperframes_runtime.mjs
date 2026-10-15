@@ -1,11 +1,16 @@
 import {createRequire} from 'node:module';
 import {execFileSync, spawn} from 'node:child_process';
-import {readFileSync} from 'node:fs';
+import {readFileSync, realpathSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 export const skillRoot = fileURLToPath(new URL('../', import.meta.url));
 export const require = createRequire(new URL('../package.json', import.meta.url));
+export function isMainModule(moduleUrl, scriptPath = process.argv[1]) {
+  if (!scriptPath) return false;
+  try { return realpathSync(scriptPath) === realpathSync(fileURLToPath(moduleUrl)); }
+  catch { return false; }
+}
 export function cliPath() {
   const pkg = path.join(skillRoot, 'node_modules/hyperframes/package.json');
   let installed;

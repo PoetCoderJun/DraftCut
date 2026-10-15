@@ -4,7 +4,7 @@ import {createWriteStream, existsSync, constants} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {parseArgs, runCli, mediaMetadata} from './hyperframes_runtime.mjs';
+import {parseArgs, runCli, mediaMetadata, isMainModule} from './hyperframes_runtime.mjs';
 import {resolveBrowserExecutable} from './local_browser.mjs';
 import {acquireRenderLock} from './render_lock.mjs';
 import {assertWorkflow} from './workflow_guard.mjs';
@@ -87,6 +87,6 @@ async function main() {
     console.log('Completed: '+output);
   } finally {log?.end(); await release();}
 }
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (isMainModule(import.meta.url)) {
   main().catch(e=>{console.error(e.message);process.exitCode=1;});
 }

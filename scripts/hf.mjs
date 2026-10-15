@@ -1,8 +1,6 @@
 #!/usr/bin/env node
-import {runCli} from './hyperframes_runtime.mjs';
+import {runCli, isMainModule} from './hyperframes_runtime.mjs';
 import {resolveBrowserExecutable} from './local_browser.mjs';
-import {fileURLToPath} from 'node:url';
-import path from 'node:path';
 
 export function diagnosticEnvironment(browser, env = process.env) {
   const configured = Number(env.PRODUCER_PAGE_NAVIGATION_TIMEOUT_MS);
@@ -27,5 +25,5 @@ async function main() {
     await runCli([command, ...args], {env});
   }
 }
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url))
+if (isMainModule(import.meta.url))
   main().catch(error => {console.error(error.message); process.exitCode = 1;});

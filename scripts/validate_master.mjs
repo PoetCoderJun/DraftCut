@@ -4,7 +4,7 @@ import {readFile, readdir, writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {assertWorkflow,fileHash} from './workflow_guard.mjs';
-import {parseArgs, mediaMetadata} from './hyperframes_runtime.mjs';
+import {parseArgs, mediaMetadata, isMainModule} from './hyperframes_runtime.mjs';
 
 export function checkMetadata(plan, metadata) {
   const video = metadata.streams?.find(s=>s.codec_type==='video');
@@ -45,5 +45,5 @@ async function main() {
   if(!passed)throw new Error('Technical check failed: '+Object.entries(checks).filter(([,v])=>!v).map(([k])=>k).join(', '));
   console.log('DraftCut technical checks: passed');
 }
-if(process.argv[1] && path.resolve(process.argv[1])===fileURLToPath(import.meta.url))
+if(isMainModule(import.meta.url))
   main().catch(e=>{console.error(e.message);process.exitCode=1;});
