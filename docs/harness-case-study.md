@@ -1,40 +1,41 @@
-# DraftCut：可检查的 Agent Harness 工程案例
+# DraftCut：从可审查提案到两次人工批准
 
-[English](harness-case-study.en.md) · [项目](../README.md)
+[English](harness-case-study.en.md) · [使用方法](getting-started.md)
 
-音频到成片同时需要创意判断与机械约束。DraftCut 将它们拆开，让人能检查决定、产物与脚本各自承担什么。
+DraftCut 将语义判断交给 Agent 与人，将来源、时间线与批准完整性放到确定性代码中。正式流程是口播稿审核、视频脚本审核、成片。
 
-| 阶段 | 可审查记录 | 机械边界 |
-| --- | --- | --- |
-| 意图 | 明确气口 yes/no、渐进创意 brief、可选素材/参考 | ASR 入口要求选择及单独云授权 flag |
-| 音频 | 源 SHA-256、试听批准区间、采样保留/删除区间 | 拒绝错误源审核、词重叠和剪区重叠；字幕共用删除映射 |
-| 规划 | 导演脚本与批准机器计划 | 正数画布/帧率/时长、已解决 brief、非空视觉 prompt、连续帧网格 cue |
-| 初始化 | 音频优先可编辑工程、scaffold 状态 | 检查音频解码/时长与字幕边界；无需人物视频；不覆盖已有工程 |
-| 制作 | 内容视觉与连续预览证据 | production 要求 ready 和存在的证据路径；合成 smoke 模式明确区分 |
-| 交付 | 日志/渲染记录、技术报告、独立视觉/试听记录 | 尺寸/帧率、音频视频时长、H.264/AAC、单 MP4 目录 |
+## 口播编辑
 
-## 确定性与判断的边界
+[spoken_edit.py](../scripts/spoken_edit.py) 复用原 clean-talking 的保守候选和纯时间线助手，要求逐词完整记账。Agent 通读全文并听审，明确删除口头禅、口误／改口、失败重说、冗余重复、停顿的依据。否定、数字和名称有保守保护；敏感变更须写出具体理由供人审核。
 
-[prepare_audio.py](../scripts/prepare_audio.py) 只建议未分类词间间隙，不自动批准气口。Agent 必须试听选择，脚本才把批准气口默认保留到 0.25 秒。不剪则保留时间线。程序阻止词级时间戳重叠，但 ASR 时间不准仍可能暴露语音，不能证明节奏自然或音质合格。采样映射后 SRT 舍入到毫秒。
+每个保留词恰好进入输出一次，移序需说明。代码按整数采样拼接 48 kHz 原声，逐块比较输出 PCM 与源区间；所有保留词的完整采样范围都必须存在，删除词不能残留。字幕由保留词及同一映射生成，不能仅删字幕。词组断句和 ASR 字面纠错都在审核包中披露，不用 TTS 添加声音。
 
-[validate_plan.py](../scripts/validate_plan.py) 检查结构与 cue 时间，不认证批准身份、不绑定批准版本、不检查媒体存在或视觉意义。[init_project.mjs](../scripts/init_project.mjs) 再检查音频解码、时长和字幕边界；生成的是 scaffold，不是完整创意成果。
+输入为视频时，同一采样区间决定视频片段；累计帧舍入将边界误差限制在帧精度，避免逐段舍入累积漂移。正式媒体完整解码。ASR 边界本身仍需听审，采样正确不能证明识别或自然度。
 
-[render_master.mjs](../scripts/render_master.mjs) 读取 Agent 记录的制作状态，确认预览证据路径存在；不解读证据像素，也不证明实际看过。固定依赖、单 worker 和可 seek 时间线便于检查，但不承诺不同硬件字节一致。硬件/软件编码明确选择。
+## 两次批准与失效
 
-[validate_master.mjs](../scripts/validate_master.mjs) 检查元数据及音轨时长，容差三帧；报告明确 scope=technical，视觉未被此程序评估。连续观看与实际试听是另外的真实审查任务。目前没有签名审批或整工程哈希绑定。
+[spoken_workflow.py](../scripts/spoken_workflow.py) 先生成 REVIEW-ONLY 代理和完整差异稿，语义复核证据绑定稿件与代理。口播稿请求由用户签名后才可生成正式精炼音频。导演请求绑定正式音频、字幕、完整脚本、计划及素材，再次由用户签名。
 
-## 复现
+[review_approval.py](../scripts/review_approval.py) 在用户本人终端审阅并确认当前摘要，用用户保管的加密 Ed25519 私钥签发回执。生产验证信任项目外公钥，不接受模型布尔值、自签测试身份、错误阶段或过期版本。内容变化在实际检查中被观察到时烧掉旧代次，即使恢复旧稿也需新的批准。失败构建保留在暂存事务目录，不当作已批准成品；同版本重试只返回已验证产物。
+
+这依赖用户保管口令与主机信任配置，不能防御掌握整个执行环境和口令的攻击者。签名证明持钥者批准过具体内容，不证明审美、语义与听感。详情见 [审批边界](approvals.md)。
+
+## 制作与交付
+
+`validate_plan.py` 的纯函数只做结构检查；生产 CLI、初始化、导出和交付入口都重新校验两道签名链。`init_project.mjs` 按字节复制批准 WAV，生成的仍是 scaffold。Agent 必须实际创作 MG 并连续预览。
+
+导出前后验证当前批准与工程音轨，导出后由 [verify_output_audio.py](../scripts/verify_output_audio.py) 比较解码波形和批准原声，检查音轨误换或时序不一致。mono→stereo 显式复制声道，避免隐式 downmix 造成虚假的增益差异。波形比较有 AAC 编码容差，不代替语义试听。
+
+依赖继续锁定 Hyperframes 0.8.30、GSAP 3.14.2；默认单 worker、本机 Chrome、硬件 H.264，软件编码显式选择。技术元数据、实际听感和视觉判断分开报告。
+
+## 可复查的本地验证
 
 ```bash
-python3 examples/plan-validation/run.py
 python3 -m unittest discover -s tests -v
 python3 -m unittest discover -s scripts/tests -v
 node --test tests/*.test.mjs
-python3 examples/audio-only-smoke/run.py --output-dir /tmp/draftcut-fresh-smoke --render
+python3 examples/plan-validation/run.py
+python3 examples/full-workflow/run.py --output-dir /tmp/draftcut-full-example --initialize-composition
 ```
 
-最后一条命令用合成声音与作者编写时间戳，不调用云 ASR、不用私人录音。需要固定依赖、FFmpeg、本机 Chrome。只验证纯音频工程可渲染，不证明真实 ASR 准确率、自然气口判断、创意质量或耗时成本收益。见 [迁移说明](audio-first-migration.md)。
-
-可迁移的思路是清楚的决定记录、窄的确定性门禁与独立评估的 Agent 判断，可用于 Work、Robotics、Finance 的探索；本媒体案例不代表企业部署、机器人能力、金融绩效或 ROI。
-
-[非商业许可](../LICENSE.md) 未改，商业用途需事先书面授权；第三方材料保留自身权利。
+合成源为按词标记的音调、手写时间戳与独立 fixture 签名，不是实际 ASR 或真实人类批准。测试覆盖语义删改、敏感词和有意重复保留、移序、PCM完整性、SRT映射、人物音视频同剪辑、两道批准阻塞、变更失效、伪造与旧项目迁移。真实口播准确率、自然剪口、视觉质量和效率收益仍须用获授权录音与实际视听评估，未建立 100 倍基准。

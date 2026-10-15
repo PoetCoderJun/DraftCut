@@ -177,38 +177,9 @@ def prepare(audio: Path, transcript: dict, output: Path, *, trim_breaths: str,
     return report
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--audio', type=Path, required=True)
-    parser.add_argument('--transcript', type=Path, required=True, help='Internal ASR artifact, not a required user input')
-    parser.add_argument('--trim-breaths', choices=['yes', 'no'], required=True)
-    parser.add_argument('--output-dir', type=Path)
-    parser.add_argument('--reviewed-gaps', type=Path)
-    parser.add_argument('--keep-gap', type=float, default=.25)
-    parser.add_argument('--propose-gaps', type=Path)
-    args = parser.parse_args()
-    transcript = json.loads(args.transcript.read_text())
-    if args.propose_gaps:
-        if args.trim_breaths != 'yes':
-            raise ValueError('Only propose gaps after the user chose trimming')
-        validate_transcript(transcript, audio_duration(args.audio))
-        if args.propose_gaps.exists():
-            raise ValueError('Refuse to overwrite a previous gap review')
-        args.propose_gaps.parent.mkdir(parents=True, exist_ok=True)
-        candidates = propose_gaps(transcript, args.keep_gap)
-        candidates['audio_sha256'] = hashlib.sha256(args.audio.read_bytes()).hexdigest()
-        args.propose_gaps.write_text(json.dumps(candidates, ensure_ascii=False, indent=2) + '\n')
-        print('Candidates saved; listen and classify. No audio has been cut.')
-        return 0
-    if not args.output_dir:
-        parser.error('--output-dir is required for preparation')
-    review = json.loads(args.reviewed_gaps.read_text()) if args.reviewed_gaps else None
-    print(json.dumps(prepare(args.audio, transcript, args.output_dir, trim_breaths=args.trim_breaths,
-                             review=review, keep_gap=args.keep_gap), ensure_ascii=False))
-    return 0
+    parser = argparse.ArgumentParser(description="Legacy low-level breath-edit library; not a production approval path")
+    parser.parse_known_args()
+    parser.error("Explicit migration required: use spoken_workflow.py init and obtain manuscript approval before render-audio")
 
 if __name__ == '__main__':
-    try:
-        raise SystemExit(main())
-    except (ValueError, FileNotFoundError, KeyError, subprocess.CalledProcessError) as error:
-        print(f'error: {error}', file=sys.stderr)
-        raise SystemExit(1)
+    main()

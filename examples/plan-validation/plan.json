@@ -1,7 +1,5 @@
 {
   "example_only": true,
-  "status": "approved",
-  "approved": true,
   "source": {
     "audio": "synthetic-placeholder.wav",
     "subtitles": "synthetic-placeholder.srt",
@@ -28,14 +26,16 @@
       "visual_prompt": "Display synthetic label B."
     }
   ],
-  "audio_preparation": {
-    "trim_breaths": "no"
-  },
   "creative_brief": {
     "layout": "landscape full-screen text",
     "idea": "Show A then B",
     "materials": "none; synthesized sound and DOM visuals",
     "style": "clear light typography on dark background",
     "references": []
+  },
+  "workflow": {
+    "schema": "draftcut.workflow.v2",
+    "project_dir": "synthetic-structure-only",
+    "director_script": "synthetic-director.md"
   }
 }

@@ -7,6 +7,7 @@ import {fileURLToPath} from 'node:url';
 import {parseArgs, runCli, mediaMetadata} from './hyperframes_runtime.mjs';
 import {resolveBrowserExecutable} from './local_browser.mjs';
 import {acquireRenderLock} from './render_lock.mjs';
+import {assertWorkflow} from './workflow_guard.mjs';
 
 export function buildRenderArgs({projectDir, output, fps, videoBitrate, encoding = 'hardware'}) {
   return ['render', projectDir, '--output', output, '--fps', String(fps),
@@ -35,7 +36,8 @@ async function main() {
   if (existsSync(output)) throw new Error('Preserve the previous export; choose a new output path');
   const plan = JSON.parse(await readFile(path.resolve(args.plan),'utf8'));
   if (purpose === 'smoke' && plan.example_only !== true) throw new Error('Smoke rendering requires an explicitly marked synthetic example plan');
-  if (plan.status !== 'approved' || plan.approved !== true) throw new Error('Director plan must be approved');
+  const approval=assertWorkflow(path.resolve(args.plan),projectDir);
+  if(purpose==='smoke'&&!approval.example_only)throw new Error('Smoke accepts only the known synthetic example with both fixture approvals');
   const fps = plan.render_spec?.fps;
   if (!Number.isFinite(fps) || fps <= 0) throw new Error('Invalid render fps');
   const release = await acquireRenderLock(projectDir);
@@ -62,11 +64,15 @@ async function main() {
       HYPERFRAMES_BROWSER_PATH:browser, PRODUCER_HEADLESS_SHELL_PATH:browser,
       PRODUCER_BROWSER_GPU_MODE:encoding === 'hardware' ? 'hardware' : 'software', PRODUCER_DISABLE_GPU:encoding === 'hardware' ? 'false' : 'true',
     }});
+    execFileSync('python3',['-c','from verify_output_audio import compare_audio; import sys,json; print(json.dumps(compare_audio(sys.argv[1],sys.argv[2])))',path.resolve(projectDir,'assets/narration.wav'),stagedOutput],{cwd:path.dirname(fileURLToPath(import.meta.url)),stdio:'pipe'});
     const media = mediaMetadata(stagedOutput);
     const video=media.streams.find(s=>s.codec_type==='video'), audio=media.streams.find(s=>s.codec_type==='audio');
     if (video?.codec_name!=='h264' || audio?.codec_name!=='aac') throw new Error('Export must contain H.264 video and AAC audio');
+    assertWorkflow(path.resolve(args.plan),projectDir);
     await copyFile(stagedOutput,output,constants.COPYFILE_EXCL);
-    const metrics={status:'completed',engine:'hyperframes',workers:1,node:process.execPath,
+    await writeFile(path.join(projectDir,'export-approval.json'),JSON.stringify({approval,outputSha256:(await import('./workflow_guard.mjs')).fileHash(output)},null,2)+'\n');
+    assertWorkflow(path.resolve(args.plan),projectDir); // Reject revisions made while rendering.
+    const metrics={approval,status:'completed',engine:'hyperframes',workers:1,node:process.execPath,
       architecture:process.arch,browserExecutable:browser,purpose,hardwareEncodingRequested:encoding==='hardware',
       totalSeconds:(performance.now()-started)/1000,output,stagedOutput,logPath,command};
     await writeFile(path.join(projectDir,'render-metrics.v1.json'),JSON.stringify(metrics,null,2)+'\n');

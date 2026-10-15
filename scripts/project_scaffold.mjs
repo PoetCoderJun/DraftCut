@@ -19,10 +19,14 @@ export function scaffold(plan, captions) {
   const {width:w, height:h, fps} = plan.render_spec, duration = plan.source.duration_seconds;
   const captionHtml = captions.map((c,i) => {
     if (c.start < 0 || c.end > duration+.001) throw new Error('Subtitle exceeds approved audio timeline');
-    return `<div id="caption-${i}" class="clip caption" data-start="${c.start}" data-duration="${c.end-c.start}" data-track-index="10">${escapeHtml(c.text)}</div>`;
+    return `<div id="caption-${i}" class="clip caption caption-${i}" data-start="${c.start}" data-duration="${c.end-c.start}" data-track-index="10">${escapeHtml(c.text)}</div>`;
   }).join('\n');
-  const cueHtml = plan.cues.map((c,i)=>`<section id="scene-${i}" class="clip scene" data-start="${c.start_seconds}" data-duration="${c.end_seconds-c.start_seconds}" data-track-index="1"><div id="headline-${i}" class="headline">${escapeHtml(c.title || c.visual_prompt)}</div></section>`).join('\n');
-  const motion = plan.cues.map((c,i)=>`timeline.fromTo('#headline-${i}',{y:24,autoAlpha:0},{y:0,autoAlpha:1,duration:0.25},${c.start_seconds});`).join('\n');
+  const cueHtml = plan.cues.map((c,i)=>`<section id="scene-${i}" class="clip scene scene-${i}" data-start="${c.start_seconds}" data-duration="${c.end_seconds-c.start_seconds}" data-track-index="1"><div id="headline-${i}" class="headline headline-${i}">${escapeHtml(c.title || c.visual_prompt)}</div></section>`).join('\n');
+  const motion = [
+    `gsap.set('.scene, .caption',{autoAlpha:0});`,
+    ...plan.cues.map((c,i)=>`timeline.set('.scene-${i}',{autoAlpha:1},${c.start_seconds});timeline.fromTo('.headline-${i}',{y:24,autoAlpha:0},{y:0,autoAlpha:1,duration:0.25},${c.start_seconds});timeline.set('.scene-${i}',{autoAlpha:0},${c.end_seconds});`),
+    ...captions.map((c,i)=>`timeline.set('.caption-${i}',{autoAlpha:1},${c.start});timeline.set('.caption-${i}',{autoAlpha:0},${c.end});`),
+  ].join('\n');
   return `<!doctype html>
 <html lang="${escapeHtml(plan.language || 'zh-CN')}"><head><meta charset="utf-8"><title>DraftCut</title>
 <script src="assets/gsap.min.js"></script><link rel="stylesheet" href="theme.css"></head>

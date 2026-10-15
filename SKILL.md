@@ -1,44 +1,38 @@
 ---
 name: draftcut
-description: Turn an audio recording into a complete social video with internal ASR, explicitly chosen breath-gap editing, a progressive creative brief and audio-driven Hyperframes production. Optional materials and reference videos are welcome; user video and SRT are not required.
+description: Turn natural speech into a refined original-voice narration and a polished video. Review the full spoken manuscript first, then the video director script; both require explicit human approval bound to the current source and revision.
 ---
 
 # DraftCut
 
-唯一必需的用户素材是音频文件；素材文件夹和参考成片可选。内部生成转写、逐词时间戳和匹配 SRT，不要求用户先准备视频或字幕。目标是完整 MP4、导演计划与检查报告，初始化模板本身不算成片。
+自然说话 → 精炼口播音频 → 精美视频。输入一份录音或一支口播视频，可选素材和参考片；保留用户声音，不用 TTS 补词。所有工作放入新的独立项目目录，原片不覆盖。
 
-## 先确认气口选择
+## 两次人工审核
 
-用户尚未明确时，必须先问：**“要智能剪气口吗？剪的话，我会试听筛选气口，默认将选中的间隙压到 0.25 秒；不剪就保持原音频时间线。”** 不默认、不替用户决定。已有明确选择时记录并继续，不重复询问。
+**口播稿审核 → 视频脚本审核 → 成片**。Agent 提案、试听、制作，人类批准具体版本。
 
-- 不剪：只转写、生成内部 SRT，保留原时间线。48 kHz WAV 格式归一化不是剪辑。
-- 剪：结合逐词时间戳与实际试听判断气口。候选词间空隙不是气口检测结果；保留思考、强调和自然节奏。只批准确认的气口，默认保留 0.25 秒，短于目标的不动。
-- 无法试听时不伪称听过，不自动批准候选，明确气口审核待完成。
-- 气口授权不包含填充词、口误、重说或内容删除；另有明确指示才能做。
-- 内置云 ASR 会上传音频且可能收费，调用前必须有明确授权。`--allow-cloud-asr` 是门禁，不是授权来源；不得擅自上传私人或公司资料。
+1. 读取 [口播精剪](references/00-audio.md)，通读全部逐词转写，结合上下文与试听处理无意义口头禅、口误、改口、失败重说、冗余重复及停顿。默认保留最后一次完整自然表达；保留否定、数字、专名、有意重复、强调和思考停顿。机械候选不是自动删除清单。
+2. 每个词都有保留／删除决定和理由；改口、重说、移序及 ASR 纠错明确列出依据。字幕只能对应原声实际保留的词，不能总结、补写或靠改字幕伪装音频已编辑。剪点保留完整词级区间并试听边界。
+3. 生成明确标为审听用途的代理，完成全段语义复核，再生成完整口播稿、前后差异与重映射字幕。向用户交付审核包并停在第一道门。代理不能作为已批准的精炼音频或进入视觉制作。
+4. 只有用户对该审核包的明确签名批准，才能生成正式精炼音频、同步字幕及可选同剪辑人物视频。没有回复、模糊回复、Agent 自审、旧 `approved=true`、无人值守措辞都不能代替批准。
+5. 在批准音频时间线上按 [规划](references/01-plan.md) 生成视频导演脚本和结构化计划，交付用户并停在第二道门。再次取得用户对此版本的签名批准后，按 [制作](references/02-build.md) 和 [交付](references/03-deliver.md) 连续完成；不再索要“继续”。
 
-读取 [references/00-audio.md](references/00-audio.md)。目录从音频名推导，Agent 管理内部路径，不向用户索要项目名、SRT 或 CLI 参数。
+素材、转写、口播稿或审听证据变化使第一道批准及下游失效；导演脚本、计划、素材变化使第二道批准失效。所有入口重新验证内容 hash、项目、修订代次和签名，重试不能复用过期批准。保留旧审核包与产物；改变后创建新版本。
 
-## 渐进创意沟通
+## 人类批准的来源
 
-利用已有信息，逐步解决发布场景与版式、核心创意、可选素材/B-roll、视觉风格与可选参考成片；避免一次塞满问卷。已有答案不重复问，用户授权自行决定时记录假设。参考可访问则分析构图、节奏、信息推进和动效；无法访问如实说明。参考用于理解表达，不下载、复制或重用未经许可的画面、音乐或字体。素材与参考都不是必需品；没有人物视频就用全屏视觉叙事。
+`review_approval.py` 使用用户在 Agent 可写项目以外配置的公钥，验证用户保管的加密私钥签发的回执。Agent 不创建生产身份、不读取口令、不代签、不将 fixture 批准当生产批准。用户在自己的终端审阅完整审核包、确认精确摘要并签名；没有生产信任配置时可完成提案，不能声称批准或越过门禁。见 [审批设置](docs/approvals.md)。签名验证完整性与签发者，不证明听感或语义已正确。
 
-## 规划、制作、交付
+当前工程验证不得新增付费 API 调用。合成示例仅接受仓库规定的合成 PCM 与转写，使用独立测试签名，始终标 example；真实素材不走该路径。旧项目须按 [迁移](docs/audio-first-migration.md) 显式重新审核，旧布尔批准不继承。
 
-1. 按 [规划](references/01-plan.md)，在准备后的最终音频时间线上生成导演脚本与机器计划。通常批准具体计划后制作；明确无人值守授权已覆盖时记录原文并继续，不重复请求审批。气口未回答仍须问。
-2. 批准后按 [制作](references/02-build.md) 创建 HTML/CSS/GSAP 工程并实现内容驱动的视觉故事，随后同次工作按 [交付](references/03-deliver.md) 验证、导出与交付。
-3. 画面持续推进有用信息，重点跟随论证；只用有来源的数据，不能靠静止标题加字幕宣称完成创意制作。
+## 转写与语义复核
 
-技术检查只证明结构、时间线与媒体格式；视觉语义需要连续预览，音质需要实际试听。分别报告，未做的检查标 pending。批准是可审查状态，不是签名；超出既有授权的新输入、时间线或创意方向需重新规划，已授权修订直接执行。
+内置 DashScope ASR 会上传音频且可能收费，运行前须得到针对该素材的上传／费用授权；`--allow-cloud-asr` 不是授权来源。已有逐词转写可本地导入，必须核对源素材与内容。完整语义复核优先使用同模型对审听代理的转写并试听裁决冲突；不自动新增调用。离线人工全段试听路径必须在审核包中明确披露，由签名批准确认，不能伪造云 ASR 证据。具体数据与命令见 [口播精剪](references/00-audio.md)。
 
-## Hyperframes 契约
+## 画面创作
 
-使用锁定的 Hyperframes 0.8.30、GSAP 3.14.2（Node >=22），Python 依赖见 requirements.txt；不自动升级或安装来源不明组件。依赖安装由明确环境授权决定。
+逐步解决发布版式、核心创意、可选素材、风格与参考片。画面随论证展开，用 MG、图解、比较、演示解释重点，不只重复字幕。没有人物素材可全屏视觉叙事。参考用于理解表达，不复用未经许可的资产；数字、事实须有来源。
 
-主入口 output_dir/hyperframes/index.html：body 直属的定尺寸根 composition、单一主音频 assets/narration.wav、可编辑 DOM/SVG 字幕与图形。每个媒体有唯一 id 和明确时段，框架控制播放。GSAP 时间线暂停、可 seek，注册到 window.__timelines.master；不依赖系统时钟、随机状态、CSS 动画或远程字体。
+使用锁定 Hyperframes 0.8.30、GSAP 3.14.2，Node >=22，Python 3.10+、FFmpeg 与本机完整 Chrome。主入口 `hyperframes/index.html`，单一批准音频 `assets/narration.wav`；DOM/SVG 字幕图形可编辑。GSAP 暂停、可 seek，注册 `window.__timelines.master`，不使用系统时钟、随机状态或远程字体。初始化只是 scaffold，完成内容创作和真实连续预览后才能 production 导出。固定单 worker；软件编码须明确选择。
 
-init_project.mjs 创建 **scaffold**，需实际制作后记录连续预览证据并标记 ready 才可 production 导出。--purpose smoke 仅用于标注为合成的技术测试，不能代替创作者成片。默认单 worker、本机完整 Chrome、硬件 H.264；可明确选择 --encoding software，不静默切换。
-
-入口：transcribe_audio.py、prepare_audio.py、validate_plan.py、init_project.mjs、hf.mjs、render_master.mjs、validate_master.mjs。可选方向见 [参考](references/04-reference-theme-prompt.md)。仅在用户要求倍速、响度或失真修复时读 [音频母带](references/05-social-loudness.md)，同步重映射字幕与视觉。可选组件见 [组件](references/06-modern-components.md)，核对来源与许可后安装。
-
-保留原音频、已有项目和旧版本，在新空目录生成内部产物。已有项目格式与集成依赖保留，兼容说明见 [迁移文档](docs/audio-first-migration.md)。不自动发布或上传。遵守 [LICENSE.md](LICENSE.md) 非商业条款，商业使用须事先书面授权；第三方材料适用自身许可。
+技术检查与实际连续观看、试听分别记录，没做的标 pending。保留全链路原声采样映射、完整词、SRT 毫秒边界、视频帧分配和解码报告。最终交付 MP4，可编辑工程和审核证据留在项目目录。其他私有业务不在本 Skill 范围内，不复制其代码、素材或凭据。

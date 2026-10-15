@@ -25,15 +25,15 @@ try {
     const captions=parseSrt(await readFile(resolveSource(plan.source.subtitles),'utf8'));
     const html=scaffold(plan,captions);
     await mkdir(path.join(dir,'assets'),{recursive:true});
-    // Normalize the prepared master into a truthful WAV asset, never disguise audio as presenter.mp4.
-    execFileSync('ffmpeg',['-v','error','-xerror','-n','-i',audioPath,'-map','0:a:0','-ar','48000','-c:a','pcm_s24le',path.join(dir,'assets/narration.wav')],{stdio:'pipe'});
+    // Copy the signed master without changing its approved samples.
+    await copyFile(audioPath,path.join(dir,'assets/narration.wav')); // Preserve the approved PCM byte-for-byte.
     await copyFile(require.resolve('gsap/dist/gsap.min.js'),path.join(dir,'assets/gsap.min.js'));
     await writeFile(path.join(dir,'final.srt'),await readFile(resolveSource(plan.source.subtitles),'utf8'));
     const {width:w,height:h}=plan.render_spec;
-    await writeFile(path.join(dir,'theme.css'),`:root{--ink:#f8fafc;--accent:#7dd3fc;--font:system-ui,"PingFang SC","Noto Sans CJK SC",sans-serif;}*{box-sizing:border-box}body{margin:0;background:#101827;color:var(--ink);font-family:var(--font)}#master{position:relative;width:${w}px;height:${h}px;overflow:hidden}.background{position:absolute;inset:0;background:#101827}.scene{position:absolute;inset:0;display:flex;align-items:center;padding:9%;z-index:1}.headline{display:block;max-width:100%;font-size:${w*.055}px;line-height:1.25;overflow-wrap:anywhere}.caption{position:absolute;left:7%;right:7%;bottom:7%;z-index:10;text-align:center;white-space:pre-wrap;line-height:1.35;font-size:${w*.036}px;overflow-wrap:anywhere}`);
+    await writeFile(path.join(dir,'theme.css'),`:root{--ink:#f8fafc;--accent:#7dd3fc;--font:system-ui,"PingFang SC","Noto Sans CJK SC",sans-serif;}*{box-sizing:border-box}body{margin:0;background:#101827;color:var(--ink);font-family:var(--font)}#master{position:relative;width:${w}px;height:${h}px;overflow:hidden}.background{position:absolute;inset:0;background:#101827}.scene,.caption{opacity:0;visibility:hidden}.scene{position:absolute;inset:0;display:flex;align-items:center;padding:9%;z-index:1}.headline{display:block;max-width:100%;font-size:${w*.055}px;line-height:1.25;overflow-wrap:anywhere}.caption{position:absolute;left:7%;right:7%;bottom:7%;z-index:10;text-align:center;white-space:pre-wrap;line-height:1.35;font-size:${w*.036}px;overflow-wrap:anywhere}`);
     await writeFile(path.join(dir,'index.html'),html);
-    await writeFile(path.join(dir,'project-state.json'),JSON.stringify({status:'scaffold',input:'audio',needs_visual_production:true},null,2)+'\n');
+    await writeFile(path.join(dir,'project-state.json'),JSON.stringify({status:'scaffold',input:'audio',needs_visual_production:true,workflow:plan.workflow},null,2)+'\n');
     await writeFile(path.join(dir,'hyperframes.json'),JSON.stringify({registry:'https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry',paths:{blocks:'compositions',components:'compositions/components',assets:'assets'}},null,2)+'\n');
     console.log('Audio-first scaffold created. No presenter video assumed. Build the approved visual story and inspect it before declaring production complete.');
   }
-}catch(e){console.error(e.stderr?.toString() || e.message);process.exitCode=1;}
+}catch(e){console.error(e.stderr?.toString() || e.stdout?.toString() || e.message);process.exitCode=1;}

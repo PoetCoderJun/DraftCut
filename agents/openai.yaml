@@ -1,4 +1,4 @@
 interface:
   display_name: "DraftCut"
-  short_description: "从音频到完整社交视频：转写、可选气口剪辑与视觉制作"
-  default_prompt: "Use $draftcut with my audio and optional material folder. Ask whether to trim breath gaps, resolve the creative brief progressively, and create a complete social video."
+  short_description: "自然说话到精炼原声与精美视频：口播稿、视频脚本两次人工审核"
+  default_prompt: "Use $draftcut with my audio and optional material folder. Refine the full spoken content while preserving my voice. Obtain my explicit approval of the spoken manuscript, then my approval of the video director script, before producing the final video."

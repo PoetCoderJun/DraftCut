@@ -48,7 +48,7 @@ class AudioPipelineTests(unittest.TestCase):
         self.assertNotEqual(p.returncode,0);self.assertIn('Obtain authorization',p.stderr);self.assertFalse((self.root/'asr').exists())
     def test_approved_audio_plan_without_optional_assets(self):
         p=json.loads((ROOT/'examples/plan-validation/plan.json').read_text());self.assertEqual(validate(p),[])
-        del p['audio_preparation'];self.assertTrue(any('yes/no' in e for e in validate(p)))
+        del p['workflow'];self.assertTrue(any('migration' in e for e in validate(p)))
     def test_production_export_blocks_unfinished_scaffold(self):
         project=self.root/'unfinished';project.mkdir();(project/'project-state.json').write_text(json.dumps({'status':'scaffold','needs_visual_production':True}))
         p=subprocess.run(['node',str(ROOT/'scripts/render_master.mjs'),'--project-dir',str(project),'--plan',str(ROOT/'examples/plan-validation/plan.json'),'--output',str(self.root/'output.mp4')],capture_output=True,text=True)
@@ -57,14 +57,14 @@ class AudioPipelineTests(unittest.TestCase):
         project=self.root/'review';project.mkdir();(project/'project-state.json').write_text(json.dumps({'status':'ready','needs_visual_production':False,'visual_review':{'scope':'continuous','evidence':['missing.md']}}))
         p=subprocess.run(['node',str(ROOT/'scripts/render_master.mjs'),'--project-dir',str(project),'--plan',str(ROOT/'examples/plan-validation/plan.json'),'--output',str(self.root/'output.mp4')],capture_output=True,text=True)
         self.assertNotEqual(p.returncode,0);self.assertIn('evidence does not exist',p.stderr)
-    def test_audio_only_init_preserves_source_and_refuses_overwrite(self):
+    def test_legacy_prepared_audio_requires_explicit_migration(self):
         r=prepare(self.audio,self.transcript,self.root/'prepared',trim_breaths='no')
-        p=json.loads((ROOT/'examples/plan-validation/plan.json').read_text());p['source'].update(audio=r['audio'],subtitles=r['subtitles'])
-        plan=self.root/'plan.json';plan.write_text(json.dumps(p));project=self.root/'project'
-        cmd=['node',str(ROOT/'scripts/init_project.mjs'),'--plan',str(plan),'--project-dir',str(project)]
-        subprocess.run(cmd,check=True,capture_output=True,text=True)
-        html=(project/'index.html').read_text();self.assertIn('<audio id="main-audio"',html);self.assertNotIn('<video',html);self.assertNotIn('presenter.mp4',html)
-        self.assertEqual(json.loads((project/'project-state.json').read_text())['status'],'scaffold')
-        self.assertNotEqual(subprocess.run(cmd,capture_output=True).returncode,0)
+        plan={'approved':True,'status':'approved','source':{'audio':r['audio'],'subtitles':r['subtitles']}}
+        path=self.root/'legacy.json';path.write_text(json.dumps(plan))
+        project=self.root/'project'
+        cmd=['node',str(ROOT/'scripts/init_project.mjs'),'--plan',str(path),'--project-dir',str(project)]
+        p=subprocess.run(cmd,capture_output=True,text=True)
+        self.assertNotEqual(p.returncode,0);self.assertIn('migration',p.stderr);self.assertFalse(project.exists())
+        self.assertTrue(Path(r['audio']).exists())
 
 if __name__=='__main__':unittest.main()

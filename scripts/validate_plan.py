@@ -28,8 +28,8 @@ def _required_prompt(plan: dict, key: str, errors: list[str]) -> None:
 
 def validate(plan: dict) -> list[str]:
     errors: list[str] = []
-    if plan.get("status") != "approved" or plan.get("approved") is not True:
-        errors.append("plan must be explicitly approved")
+    if plan.get("workflow", {}).get("schema") != "draftcut.workflow.v2":
+        errors.append("Legacy plan requires explicit migration and two human approvals")
 
     source = plan.get("source")
     if not isinstance(source, dict):
@@ -52,11 +52,6 @@ def validate(plan: dict) -> list[str]:
         if key == "fps":
             render_fps = value
 
-    preparation = plan.get("audio_preparation")
-    if not isinstance(preparation, dict):
-        preparation = {}
-    if preparation.get("trim_breaths") not in ("yes", "no"):
-        errors.append("audio_preparation.trim_breaths requires explicit yes/no")
     brief = plan.get("creative_brief")
     if not isinstance(brief, dict):
         brief = {}
@@ -123,7 +118,13 @@ def main() -> int:
         for error in errors:
             print(f"ERROR: {error}")
         return 1
-    print("DraftCut prompt-first plan: passed")
+    from spoken_workflow import assert_director
+    try:
+        assert_director(args.plan)
+    except (ValueError, OSError, KeyError) as error:
+        print(f"ERROR: {error}")
+        return 1
+    print("DraftCut plan and both human approvals: passed")
     return 0
 
 

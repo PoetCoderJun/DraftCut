@@ -4,13 +4,13 @@
 
 ## Speak your ideas. Give them a screen.
 
-Give your Agent a recording. DraftCut keeps your voice, tightens selected breath gaps, and brings your ideas to life with captions, diagrams and motion—a concise, polished spoken video.
+Give your Agent a recording. DraftCut keeps your voice, refines fillers, mistakes and retakes, and brings your ideas to life with captions, diagrams and motion—a concise, polished spoken video.
 
 **Start with one audio file.** No presenter footage, prepared subtitles or manual timeline layout required.
 
 [Get started](#get-started) · [See the visual possibilities](#help-people-see-what-you-mean) · [How it works](#from-recording-to-finished-video)
 
-![DraftCut turns a natural recording into a video with tighter pacing, captions and visual explanation. Original conceptual illustration.](assets/readme/draftcut-story-en.svg)
+![DraftCut: speak naturally, approve a refined edit of your original voice, and turn it into a polished video with visual explanations. Original static frames.](assets/readme/draftcut-story-en.svg)
 
 Our ambition: **100× less hands-on editing** for spoken videos, so you can spend more time expressing ideas. This goal has not yet been benchmarked.
 
@@ -18,7 +18,7 @@ Our ambition: **100× less hands-on editing** for spoken videos, so you can spen
 
 Take your time. Find your words. The finished video can move a little faster.
 
-Choose breath trimming and the Agent uses transcription and listening to tighten suitable pauses, keeping the ones that give your ideas room to land. Your spoken content and original voice stay; captions follow the edit. Choose no trimming to keep your original timing.
+The Agent reads and listens through the full recording to refine fillers, mistakes, corrections, retakes and pauses, preserving your meaning and deliberate emphasis. Review the refined manuscript and the reasons for each edit first. Once you approve it, the original voice is cut to that exact version and captions follow the sound.
 
 ## Help people see what you mean
 
@@ -64,7 +64,8 @@ Replace these paths with your real files, then send your Agent:
 ```text
 Read SKILL.md in the current directory and use DraftCut.
 Turn /absolute/path/my-recording.wav into a vertical spoken video.
-Keep my voice and spoken content. Tighten breath gaps selected after listening.
+Keep my voice. Refine fillers, mistakes, retakes and redundant pauses.
+Show me the spoken manuscript and edit reasons for approval before creating the refined audio.
 Use key phrases and diagrams to support the explanation.
 Show me the video director script for approval before production.
 Write to /absolute/path/new-video-output, a new empty directory.
@@ -74,19 +75,19 @@ Add materials or a reference video if you have them. For an existing talking vid
 
 ### 3. Approve the visual story. Get your video.
 
-The Agent works through the format, idea and style with you, then delivers a video director script. Once you approve it, the Agent continues through production, preview and MP4 export. The editable project stays available for revisions.
+Review the spoken manuscript, then the video director script. After both approvals, the Agent continues through production, preview and MP4 export. The editable project stays available for revisions. [How approval works](docs/approvals.md)
 
 ## From recording to finished video
 
-![The workflow: record, select and tighten breath gaps, approve the video director script, produce and deliver the video.](assets/readme/draftcut-workflow-en.svg)
+![Review the spoken edits, approve the visual script with scenes and captions, then produce the finished video.](assets/readme/draftcut-workflow-en.svg)
 
 Prepare the voice, then shape the visual story. The director script brings composition, emphasis, assets and pacing together so you can see where the video is heading before production. Once approved, the Agent continues through production, review and delivery.
 
-The current approval covers the video director script; an independent spoken-manuscript review is not yet integrated. See [what you review](docs/getting-started.md#what-you-review).
+**Approve the spoken manuscript → approve the video script → get the video.** Each approval covers a specific revision; content changes require a new review. See [what you review](docs/getting-started.md#what-you-review).
 
 [Setup and usage](docs/getting-started.md) · [Engineering and validation](docs/harness-case-study.en.md) · [Integration and compatibility](docs/audio-first-migration.md) · [Third-party notices](THIRD_PARTY_NOTICES.md)
 
-DraftCut was previously MotionTalk; existing project formats remain compatible. Licensed for non-commercial use under [CC BY-NC-SA 4.0](LICENSE.md). Commercial use requires prior written permission.
+DraftCut was previously MotionTalk. Existing projects need [migration and fresh approvals](docs/audio-first-migration.md); keep their original materials and editable files. Licensed for non-commercial use under [CC BY-NC-SA 4.0](LICENSE.md). Commercial use requires prior written permission.
 
 <!-- Compatibility anchors for previously published README links. -->
 <a id="quickstart"></a>

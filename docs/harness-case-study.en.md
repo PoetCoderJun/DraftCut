@@ -1,40 +1,17 @@
-# DraftCut: an inspectable Agent Harness case study
+# DraftCut: inspectable edits and two human approvals
 
-[中文](harness-case-study.md) · [Project](../README.md)
+[中文](harness-case-study.md) · [Setup](getting-started.md)
 
-Turning audio into a social video combines open creative judgment with mechanical constraints. DraftCut separates them so reviewers can inspect both the decisions and the code.
+The workflow is **spoken-manuscript approval → video-script approval → production**. The Agent proposes semantic edits and reviews the full recording; deterministic code checks source integrity, word accounting, media timing and signed decisions.
 
-| Stage | Reviewable record | Mechanical boundary |
-| --- | --- | --- |
-| User intent | Explicit breath yes/no, progressive creative brief, optional materials/references | ASR wrapper requires a choice and a separate cloud-consent flag |
-| Audio preparation | Source SHA-256, listening-approved breath intervals, kept/deleted sample ranges | Reject wrong-source reviews, word overlap and overlapping cuts; remap words/SRT using the same deletion map |
-| Planning | Director script and approved machine plan | Positive dimensions/fps/duration, resolved brief, nonempty visual prompts, frame-grid contiguous cues |
-| Initialization | Audio-first editable composition, status=scaffold | Require decodable audio and matching duration; no presenter video; refuse nonempty project directories |
-| Production | Content-aware visuals and continuous preview evidence | Production renderer requires ready status and existing recorded evidence; smoke mode is explicitly synthetic |
-| Delivery | Render log/metrics, technical report, separate visual/listening review | Compare dimensions, fps, video/audio duration, H.264/AAC and one-MP4 delivery directory |
+[spoken_edit.py](../scripts/spoken_edit.py) reuses clean-talking's conservative candidates and pure timeline helpers. Every word has one keep/delete decision and a reason. Negation, numbers and names have conservative protection; sensitive changes require explicit justification. Reordering is disclosed. Every retained word maps once to an intact source sample interval, and no deleted word may remain in kept audio. Audio is spliced from 48 kHz source PCM and compared byte-for-byte; SRT comes from the same sample map. ASR corrections are disclosed, never synthesized as new speech.
 
-## Determinism and judgment
+A source video follows the same cuts. Cumulative frame allocation bounds rounding rather than accumulating an independent error at every splice. Complete media decoding and timing checks are required. Incorrect ASR boundaries can still harm perceived speech, so actual listening remains necessary.
 
-[prepare_audio.py](../scripts/prepare_audio.py) proposes unclassified word gaps, never auto-approved breaths. An Agent must listen and select suitable intervals. The script keeps 0.25 seconds by default only in approved breath gaps; no-trim keeps the timeline. It blocks cuts overlapping word timestamps, but inaccurate ASR timings can still expose speech. It cannot establish natural pacing or sound quality. SRT timestamps are rounded to milliseconds after sample-based mapping.
+[spoken_workflow.py](../scripts/spoken_workflow.py) creates a review-only proxy, source/refined text, word decisions, reasons, corrections and the complete mapped subtitles. Semantic review evidence is bound to the current draft and proxy. Only a valid human manuscript receipt unlocks the formal refined master. The second review binds that master, subtitles, visual script, machine plan and assets. Observed input changes burn the previous generation; reverting an observed changed draft does not resurrect its receipt. Builds use preserved transactions and safe same-version retries.
 
-[validate_plan.py](../scripts/validate_plan.py) checks plan structure and cue timing, not user identity, approval revision binding, media existence or visual meaning. [init_project.mjs](../scripts/init_project.mjs) then checks audio existence/decoding, duration and subtitle bounds. The initializer is a scaffold, not a complete creative result.
+[Human approval](approvals.md) uses an encrypted Ed25519 key held by the user, with a production trust anchor outside the editable project. Model-written booleans and fixture signatures cannot authorize real sources. This protects the configured workflow; it does not defend against an attacker who controls the host, code and signing passphrase. A signature proves a specific decision by its key holder, not creative or semantic quality.
 
-[render_master.mjs](../scripts/render_master.mjs) reads Agent-authored production state and checks recorded evidence paths. It does not inspect evidence pixels or prove the review actually occurred. Hardware/software selection is explicit; dependency versions, worker count and seekable timelines make execution inspectable, but this does not promise byte-identical output across hardware.
+The pure `validate_plan` function checks structure only. Its production CLI, initialization, rendering and delivery all verify the current two-stage signature chain. Initialization copies the approved WAV unchanged and creates a scaffold; actual visual production and continuous preview remain separate work. Exported AAC is decoded and compared against the approved voice waveform, including explicit mono/stereo handling. Codec tolerance is not semantic listening certification.
 
-[validate_master.mjs](../scripts/validate_master.mjs) checks output metadata with a three-frame timing tolerance and audio presence/duration. Its report explicitly says scope=technical and visual_review=not_assessed_by_this_validator. Visual understanding and listening remain separate, truthful review tasks. No signed approvals or whole-project hash binding are implemented.
-
-## Reproduce
-
-```bash
-python3 examples/plan-validation/run.py
-python3 -m unittest discover -s tests -v
-python3 -m unittest discover -s scripts/tests -v
-node --test tests/*.test.mjs
-python3 examples/audio-only-smoke/run.py --output-dir /tmp/draftcut-fresh-smoke --render
-```
-
-The last command uses a generated tone and authored timestamps, no cloud ASR or private input. It requires pinned runtime dependencies, FFmpeg and local Chrome. It verifies that an audio-only composition can render, not creative quality, real ASR accuracy, natural breath selection or a cost/time benchmark. See [migration notes](audio-first-migration.md).
-
-The transferable pattern is a clear decision record, narrow deterministic gates and separately evaluated Agent judgment. It can inform exploration in Work, Robotics or Finance; this media implementation does not establish enterprise deployments, robotics capability, financial performance or ROI.
-
-[CC BY-NC-SA 4.0](../LICENSE.md) remains unchanged; commercial use needs prior written permission. Third-party materials retain their rights.
+Run the commands in the [local verification guide](getting-started.md#local-verification). Fixtures use known tones and authored timestamps, no private recordings, live ASR, paid API or genuine human approvals. Coverage includes semantic edit selections, intentional repetition, protected terms, reorder/sample/SRT integrity, A/V cuts, both gates, stale/forged approvals and explicit legacy migration. Real speech accuracy, naturalness and visual quality still require authorized media and actual review. The efficiency ambition is not benchmarked.

@@ -1,15 +1,26 @@
-# 规划
+# 视频导演脚本与第二道审核
 
-先完成明确气口选择与 [音频准备](00-audio.md)。主时间线是 prepared/narration.wav 和内部 final.srt；用户不必提供视频/SRT。
+先完成 [完整口播精剪](00-audio.md)，并通过第一道人工审核生成正式精炼音频。此后才在批准音频时间线上规划画面。
 
-逐步解决 layout、idea、materials、style、references；可选项为空时写 none / []。无人物视频可做全屏 DOM/SVG；参考可访问则分析表达，不复用未经许可的资产。依据转写组织论点、演示、比较和视觉推进，不照每句重复标题卡。
+逐步解决 layout、idea、materials、style、references；素材和参考片可选。依据内容组织论点、演示、比较与 MG 动画；不用每句标题卡代替解释。数字与事实必须有来源。
 
-生成 MG导演脚本.md 与 mg-placement-plan.v1.json。结构例见 [plan.json](../examples/plan-validation/plan.json)：source.audio/subtitles 是内部产物，duration_seconds 来自实际音频；audio_preparation.trim_breaths 必须明确 yes/no，可另记录准备报告路径。creative_brief 解决版式、创意、素材和风格，references 可空。visual_direction/package_direction 是具体创意说明，render_spec 决定画布与帧率。
+在工作项目写 `MG导演脚本.md` 与 `director-plan.json`。`source.audio/subtitles` 指向上一阶段返回版本目录的 `narration.wav/final.srt`，`duration_seconds` 取实际采样时长。结构例见 [plan.json](../examples/plan-validation/plan.json)。`workflow` 必须包含：
 
-cues 从零连续覆盖，边界在帧网格上，最后一帧为音频时长的帧舍入。草案 status=draft/approved=false；批准后 status=approved/approved=true，记录 approval_text。已获无人值守授权则引用原文继续。
-
-```bash
-python3 <skill-root>/scripts/validate_plan.py --plan "$plan"
+```json
+{"schema":"draftcut.workflow.v2","project_dir":"项目绝对路径","director_script":"导演脚本绝对路径"}
 ```
 
-验证只检查结构和时间，不认证批准身份或创意质量。未获授权不伪造审批；超出授权才重新规划。批准后按 [制作](02-build.md) 连续执行。
+`assets` 列出该计划要用的可选素材路径。`creative_brief` 解决版式、想法、素材和风格，`visual_direction/package_direction` 写具体表达，`render_spec` 指定画布与帧率。cues 在帧网格上从零连续覆盖至音频时长的帧舍入。不要设置 `approved=true`，它不是批准来源。
+
+```bash
+python3 <skill-root>/scripts/spoken_workflow.py director-review \
+  --plan "$work/project/director-plan.json" --script "$work/project/MG导演脚本.md"
+```
+
+向用户交付返回的 `review.md`，其中包含完整脚本、计划、批准音频和素材摘要。**停在第二道门，等待用户对这版视频脚本明确签名批准**。第一道批准、无人值守措辞或 Agent 自审都不能代替这次批准。
+
+```bash
+python3 <skill-root>/scripts/validate_plan.py --plan "$work/project/director-plan.json"
+```
+
+该入口同时检查结构和两道当前签名。脚本、计划、素材变更使本次批准失效；口播稿变更则两次批准都需更新。批准后按 [制作](02-build.md) 连续执行。

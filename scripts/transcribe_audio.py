@@ -9,8 +9,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--audio', type=Path, required=True)
     parser.add_argument('--output-dir', type=Path, required=True)
-    parser.add_argument('--trim-breaths', choices=['yes', 'no'], required=True,
-                        help='Record the user decision before ASR; ASR itself never cuts audio')
+    parser.add_argument('--trim-breaths', choices=['yes', 'no'], default='no',
+                        help='Legacy option; ASR never edits audio and does not approve the manuscript')
     parser.add_argument('--allow-cloud-asr', action='store_true', help='Only after explicit upload/paid-service authorization')
     parser.add_argument('--language', default='zh')
     parser.add_argument('--prompt', default='')

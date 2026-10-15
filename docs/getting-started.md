@@ -1,108 +1,68 @@
 # DraftCut 安装与使用 / Setup and usage
 
-[中文首页](../README.md) · [English overview](../README_EN.md)
+[中文首页](../README.md) · [English](../README_EN.md)
 
 ## Environment
 
-- Python 3.10+, Node.js 22+, FFmpeg/ffprobe and a full local Google Chrome.
-- Apple Silicon uses native ARM64 Node and Chrome. Dependencies pin Hyperframes 0.8.30 and GSAP 3.14.2.
-- The Agent needs local file/command access, visual inspection and actual audio listening. Model names alone do not establish these capabilities.
+Python 3.10+、Node.js 22+、FFmpeg/ffprobe、本机完整 Google Chrome。Apple Silicon 使用原生 ARM64 Node/Chrome。当前锁定 Hyperframes 0.8.30、GSAP 3.14.2；Agent 需要本地文件／命令、看图和实际试听能力。当前完整流程验证环境为 macOS；事务锁使用 POSIX `flock`，Windows 需移植该层后再用，不承诺当前可直接执行。
 
-The README's clone + virtual-environment commands are the reproducible macOS/Linux path. On Windows use `py -3 -m venv .venv`, then `.venv\Scripts\Activate.ps1` in PowerShell; install FFmpeg and Chrome and make their executables available. Windows has not been verified in this documentation pass.
-
-Activate the virtual environment in the shell that launches your Agent, or instruct it to use `.venv/bin/python` for the Python scripts. A fresh terminal does not inherit an earlier activation. `npm ci` installs the exact lockfile; no global renderer installation is needed.
+从 README 克隆并安装依赖，激活 `.venv` 后启动 Agent；新终端需重新激活。Python 入口用 `.venv/bin/python` 也可。安装锁定依赖：`python3 -m pip install -r requirements.txt` 和 `npm ci`。
 
 ## Skill installation
-
-For an Agent supported by the Skills installer:
 
 ```bash
 npx skills add PoetCoderJun/DraftCut --skill draftcut
 ```
 
-Choose your Agent and installation scope in the installer. In the installed Skill directory, create/activate a Python virtual environment, run `python3 -m pip install -r requirements.txt` and `npm ci`, as in the README. Then use `$draftcut`, or ask the Agent to read that directory's `SKILL.md` directly if it does not support named Skill invocation.
-
-The repository rename does not update an already installed `$motiontalk`. Keep existing projects, install the new Skill, and explicitly select `$draftcut`; do not assume an old local checkout contains the current audio workflow. See [compatibility](audio-first-migration.md#draftcut-compatibility).
+选择 Agent 与安装范围，在安装目录完成上述依赖安装，然后调用 `$draftcut`；不支持命名调用时让 Agent 读取该目录的 `SKILL.md`。旧 `$motiontalk` 不自动更新，已有项目参见 [显式迁移](audio-first-migration.md)。
 
 ## Transcription configuration and consent
 
-The current built-in path is DashScope cloud ASR, not offline transcription. Obtain a service key with access to the configured model, and provide it through the execution environment's secret settings. Keep the key out of prompts, recordings, logs and Git. The scripts read environment variables; they do **not** automatically load `.env` files.
+内置 DashScope 转写会上传音频且可能收费。配置 `DASHSCOPE_API_KEY`；也接受旧 `DASHSCOPE_ASR_API_KEY`。默认 base URL 是 `https://dashscope.aliyuncs.com`，`DASHSCOPE_ASR_BASE_URL` 优先于 `DASHSCOPE_BASE_URL`。默认模型在现有适配器中为 `qwen3-asr-flash-filetrans`，可配置 `DASHSCOPE_ASR_MODEL`。核对服务账号的区域、模型权限与价格，不静默切换供应商。
 
-| Variable | Current behavior |
-| --- | --- |
-| `DASHSCOPE_API_KEY` | Required credential; legacy `DASHSCOPE_ASR_API_KEY` is also accepted |
-| `DASHSCOPE_BASE_URL` | Defaults to `https://dashscope.aliyuncs.com`; legacy `DASHSCOPE_ASR_BASE_URL` takes precedence when set |
-| `DASHSCOPE_ASR_MODEL` | Defaults to `qwen3-asr-flash-filetrans` in the vendored adapter |
+通过安全执行环境提供密钥，不放进提示词、日志或 Git；脚本不自动加载 `.env`。转写前须获得针对当前录音的上传／费用授权，`--allow-cloud-asr` 本身不构成授权。云端上传压缩音频代理、异步识别并取回词级结果。已有可信逐词转写可本地导入。语义复核可沿用同模型审听代理识别，也可在审核包中明确披露完整人工试听方式，由用户批准；不会自动增加付费调用。
 
-Verify the endpoint, region, model access and applicable pricing in your service account. The configuration above describes the adapter, not a guarantee of service availability.
+## Full spoken editing
 
-Before the Agent runs ASR, explicitly authorize uploading the chosen recording and any service charges. `--allow-cloud-asr` records that decision in the command; it is not permission on its own. The adapter uploads an audio proxy, submits an asynchronous job, polls it and downloads the result. Local rendering does not make the whole workflow local; your Agent platform's data handling also applies. If you decline upload, the Agent can discuss the visual idea, but the built-in transcription step cannot proceed.
+逐词检查整份原稿，处理无意义口头禅、失败重说、改口、口误、冗余重复和停顿，保留否定、数字、专名、有意重复与论证结构。完整原稿、精炼稿、逐词差异和保留／删除依据一起交给用户。模型提出编辑方案；审核前的代理只用于听审，正式精炼原声必须等用户批准后生成。
 
-The public workflow and exact commands live in [audio preparation](../references/00-audio.md). Source audio is preserved, and every run needs a new empty output directory.
-
-## Breath editing
-
-选择剪气口后，Agent 必须结合词级时间戳与实际试听筛选间隙，选中气口默认保留 **0.25 秒**，短于目标的不动；思考与强调停顿应保留。不剪时保留时间线。当前没有集成填充词、口误和重说的语义删除，不能将气口授权当作内容删改授权。
-
-The default retained length is **0.25 seconds** for each listening-reviewed breath gap. Shorter gaps stay unchanged. Intentional thinking and emphasis pauses should stay. No-trim preserves the timeline. Semantic removal of fillers, mistakes and retakes is not integrated; permission to trim breath gaps is not permission to remove spoken content.
+[实际编辑字段与命令](../references/00-audio.md) · [用户审批设置](approvals.md)。源素材、稿件和证据按 hash 与修订代次绑定；变更令下游批准失效。输出逐采样拼接原声，不靠 TTS 添加内容。
 
 ## Video input
 
-The production timeline is audio-first. If you have a talking video, authorize extracting its original audio and keep the video as an optional visual asset. For example, from a directory containing `my-talk.mp4`:
+可以直接把一支口播视频作为 `spoken_workflow.py init --source` 的输入。程序保留原文件，抽取未剪辑原声作为规范化源；正式批准后按同一时间线剪原声与人物视频。音视频时间原点不同时显式停止，不能盲目拿未剪人物视频配剪后音轨。
 
-```bash
-ffmpeg -n -i my-talk.mp4 -vn -c:a pcm_s24le -ar 48000 my-talk-audio.wav
-```
-
-Pass `my-talk-audio.wav` to DraftCut. `-n` refuses to overwrite an existing file. If you want the speaker to remain visible, provide `my-talk.mp4` as a material and make that intent explicit. Trimming audio changes its timeline: the Agent must align any original video to the same cuts; merely placing the untouched video underneath edited audio is not lip-sync. The current preparation script does not automatically recut presenter footage.
+素材文件夹和参考片仍可选。此流程聚焦现有录音或口播视频的精剪。
 
 ## What you review
 
-| Stage | Actual review / decision |
-| --- | --- |
-| Input | User chooses breath trimming yes/no; separately authorizes cloud upload/charges |
-| Audio preparation | Agent checks transcript content and listens to candidate gaps; only reviewed breath gaps are edited |
-| Director plan | User normally approves `MG导演脚本.md` and `mg-placement-plan.v1.json`, covering the proposed visuals and timing |
-| Production | Agent previews continuously, listens and runs technical validation; no new default user approval gate |
+1. **口播稿审核：**原稿／精炼稿、逐词保留删除依据、纠错、重排、停顿与全文听审证据。用户签名批准此版本后，才生成正式精炼音频与字幕。
+2. **视频脚本审核：**在批准音频时间线上规划画面、MG、素材、重点与节奏。用户再次签名批准后，才初始化视觉工程、渲染与交付。
 
-An explicit unattended-production authorization can cover the director plan; record the user's actual instruction. It does not answer an unspecified breath-trimming choice or independently authorize cloud upload. An independent full-transcript approval gate and semantic filler/retake removal are not implemented. If requested, the Agent should pause for transcript review as a task-specific instruction, not pretend a code-enforced gate exists.
+[两次批准的操作与信任边界](approvals.md)。Agent 自审、没有回复、旧批准和无人值守措辞不能代替其中任何一次。批准后连续完成当前版本，不反复索要“继续”。
 
-## Delivery and troubleshooting
+## Delivery and validation
 
-The user-facing result is `final/video.mp4`. Working audio, matching subtitles, director plan, editable HTML/CSS/GSAP composition and review reports remain in the project directory for inspection and revision. They are not separate finished products.
+主交付是 MP4，可编辑工程与审核证据留在项目目录。每个正式精炼音频样本必须来自批准源区间；字幕和词级时间共用采样映射。人物视频使用累计帧边界防止多剪口累积漂移。导出后完整解码并对 AAC 解码波形与批准音频进行比较，防止字幕变化但声音未改、音轨被换或时序漂移。
 
-- **No key or consent:** configure the service and authorize the chosen source before ASR; do not silently switch providers.
-- **No word timings or no listening capability:** do not auto-approve breath candidates; preserve timing or resolve the missing review.
-- **Misheard words or rough cuts:** correct timings/content against the source and listen again before planning visuals.
-- **Chrome/hardware unavailable:** provide the real full Chrome path; choose `--encoding software` explicitly if needed. Do not silently download a browser or change encoding mode.
-- **“Complete the approved visual production”:** the initializer only created a scaffold. Finish the visuals and record real continuous-review evidence before production export.
-
-See [the engineering case study](harness-case-study.en.md) for checks and limits. A technical pass does not certify creative quality, natural speech or perceptual synchronization.
+技术验证不证明语义自然和审美正确。Agent 仍需连续预览与实际试听首、中、尾和所有剪口，分开记录判断；没有执行的标 pending。ASR 误识别和不准确词边界需先复核修订。
 
 ## Local verification
-
-From the repository root after dependency setup:
 
 ```bash
 python3 -m unittest discover -s tests -v
 python3 -m unittest discover -s scripts/tests -v
 node --test tests/*.test.mjs
 python3 examples/plan-validation/run.py
+python3 examples/full-workflow/run.py --output-dir /tmp/draftcut-full-example --initialize-composition
 ```
 
-These use synthetic fixtures and mocked service results, not private recordings or live cloud models. Optional [audio-only smoke rendering](../examples/audio-only-smoke/README.md) checks the renderer, not an end-to-end creator project or the 100× aspiration.
-
-The README SVGs are original, editable vector illustrations authored for DraftCut. Their dialogues, waveforms and layouts are schematic, not screenshots, measured before/after results or a product UI. They contain no external fonts, scripts or linked assets. Existing creator GIFs are separately labeled as prior finished work.
+最后一个命令使用已知音调 PCM、手写词时间戳与独立临时测试签名，通过两道模拟审核并实际生成精炼音频、字幕与可初始化项目。它不伪装人类批准或实际 ASR／自然听感验收，也不会调用云模型。示例生产门只能处理这份已知合成输入，不能用 `example_only` 标签绕过真实项目审核。
 
 ## Examples and validation
 
-首页讲产品体验，以下记录对应的验证范围：
+首页的两个 GIF 来自作者既有成片，均为 6 倍速无声视觉展示：Vibe Working 原片 00:39–01:27，具身 AI 为原片最后 30 秒。它们不是新流程的端到端验收。
 
-- **Agent 与模型：**兼容条件是本地文件读写、命令执行、看图和实际试听能力，尚未逐一验证所有 Agent。Opus 5.5、ChatGPT 6 Astra、Kimi k3 是作者推荐，并非兼容性认证；以使用平台的模型和工具能力为准。
-- **成片示例：**Vibe Working GIF 来自作者既有成片 00:39–01:27；另一个图解 GIF 来自既有具身 AI 视频的最后 30 秒。两者均为 6 倍速无声片段，用于展示视觉表达，不是当前录音到成片版本的端到端验收。
-- **效率目标：**100 倍是减少人工剪辑投入的愿景，目前没有人工剪辑对照基准，也不是普遍实测保证。实际耗时取决于素材、Agent、审核与渲染环境。
-- **质量判断：**转写可能误识别，剪口需要实际试听，画面需要连续观看。技术脚本通过只覆盖其结构、时间线和媒体规格检查，不证明语义、听感或创意质量。未执行的视听检查须如实记录。
+Opus 5.5、ChatGPT 6 Astra、Kimi k3 是作者推荐，Agent 实际能力取决于本地文件、命令、视觉与试听工具；没有逐一认证所有平台。首页的 100 倍是减少人工剪辑投入的愿景，尚无对照基准或普遍实测保证。
 
-Agent support is defined by tool capabilities, not by a fully tested compatibility matrix. The named models are the author's recommendations, not certifications. The two silent 6× creator GIFs show existing work, not end-to-end validation of this audio-first release. The efficiency aspiration has no comparative benchmark or universal timing guarantee. Technical checks, continuous visual review and listening assess different things; record what was actually checked.
-
-For the exact integration scope and its code evidence, see [audio-first migration](audio-first-migration.md#integration-scope-evidence).
+SVG 为原创可编辑示意，不是实际产品界面、音频实测或客户结果。测试与真实生产结果分别记录；技术、听感与视觉结论各有适用范围。
