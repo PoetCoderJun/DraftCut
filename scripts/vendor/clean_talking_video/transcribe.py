@@ -56,7 +56,10 @@ def dashscope_api_key(environ: Mapping[str, str]) -> str:
 
 def normalize_dashscope_base_url(value: str) -> str:
     base_url = str(value or DEFAULT_DASHSCOPE_BASE_URL).strip().rstrip("/")
-    parsed = urlsplit(base_url)
+    try:
+        parsed = urlsplit(base_url)
+    except ValueError:
+        raise ValueError('DASHSCOPE_ASR_BASE_URL / DASHSCOPE_BASE_URL is not a valid HTTPS service URL') from None
     if (parsed.scheme != 'https' or not parsed.hostname or parsed.username or parsed.password
             or parsed.query or parsed.fragment):
         raise ValueError('DASHSCOPE_ASR_BASE_URL / DASHSCOPE_BASE_URL must be an HTTPS URL without credentials, query or fragment')
@@ -74,7 +77,7 @@ def dashscope_settings(
     api_key = dashscope_api_key(environ)
     if not api_key:
         raise RuntimeError('DashScope transcription needs DASHSCOPE_API_KEY (or DASHSCOPE_ASR_API_KEY). '
-                           'Inject it securely or select --env-file with transcribe_audio.py; .env is not auto-loaded. '
+                           'Configure once with configure_asr.py setup, inject it securely, or select --env-file with transcribe_audio.py. '
                            'A trusted word-timestamp transcript can be imported without a cloud key.')
     def interval(name, default, minimum):
         try:

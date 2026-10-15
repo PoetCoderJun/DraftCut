@@ -11,7 +11,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from asr_config import asr_capability, load_asr_environment
+from asr_config import config_status
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -108,7 +108,7 @@ def bootstrap(install=False, chrome_override=None, env_file=None):
               'scope': 'local dependency and media checks; no cloud ASR, approvals, real-media or creative certification'}
     try:
         report['capabilities'] = {
-            'asr': asr_capability(load_asr_environment(env_file)),
+            'asr': config_status(env_file),
             'human_approval': {'status': 'not_checked', 'action': 'The owner sets up and signs in their own terminal; HOME/XDG overrides do not change the OS-account trust anchor. See docs/approvals.md'},
             'agent_audio_video': {'status': 'not_checked', 'action': 'Check actual listening and continuous viewing in the current Agent channel; dependency health cannot establish these capabilities'},
         }

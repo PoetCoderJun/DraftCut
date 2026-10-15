@@ -31,7 +31,7 @@ python3 scripts/bootstrap.py --install
 
 `--browser-executable /absolute/path/to/GoogleChrome` 只选择已经安装的完整 Chrome。脚本不会下载浏览器、创建审批身份、输出密钥或调用转写服务。安装命令可能访问 Python/npm 软件仓库，需要按执行环境的正常网络授权路径操作；不能把网络失败写成安装完成。
 
-ASR 配置是可选能力，不是安装前提。`capabilities.asr` 报告缺配置、配置无效或仅配置存在，不会登录、上传或验证余额。需要读取本地配置时由 Agent 明确选择 `--env-file /absolute/path/to/private.env`；不会搜索任何目录中的 `.env`。见 [配置与能力边界](configuration.md)。
+ASR 配置是可选能力，不是安装前提。`capabilities.asr` 安全报告缺配置、配置无效或配置存在，不会登录、上传或验证余额。默认自动复用固定用户级配置；已有配置不再索取 key。确实缺少且用户需要云转写时，只引导一次平台安全注入或本地 `configure_asr.py setup` 隐藏输入，之后跨项目复用；安装不会写入或覆盖凭据。`--env-file` 仅为可选 override，不是每次制作的步骤。见 [API key 一次配置](configuration.md)。
 
 ## 3. 检查能否实际工作
 
@@ -55,7 +55,7 @@ export PATH="/actual/DraftCut/.venv/bin:/actual/native-node/bin:$PATH"
 
 ## 4. 进入口播制作
 
-环境就绪后按 [SKILL](../SKILL.md) 接收真实录音与效果要求。已有可信逐词转写可以本地导入。内置 ASR 使用 DashScope，需要针对素材的上传／费用授权；环境通过不等于获得这项授权。通过 Agent 平台的安全配置／密钥入口请求必要凭据，不在聊天提示词中要求粘贴密钥，不写入 Git 或日志，也不替用户开通付费账户。选择私有配置时只取得文件路径，由脚本加载；不要读取或打印配置正文到模型上下文。
+环境就绪后按 [SKILL](../SKILL.md) 接收真实录音与效果要求。已有可信逐词转写可以本地导入。内置 ASR 使用 DashScope，需要针对素材的上传／费用授权；环境通过不等于获得这项授权。先复用已配置状态；确实缺少时才引导一次安全输入，不在聊天中要求粘贴密钥，不写入 Git 或日志，也不替用户开通付费账户。用户文件由脚本自动加载，不读取或打印配置正文到模型上下文。已有明确上传／费用授权覆盖当前素材时沿用，超范围才补问；key 存在本身不构成授权。
 
 没有素材和云授权时可运行 [完整合成 fixture](../examples/full-workflow/README.md) 作为本地流程证明。它不证明真实 ASR 或人类审批。真实制作仍须经过口播稿与视频脚本两次审核；用户的生产签名身份和私有口令按 [审批说明](approvals.md) 由本人保管，Agent 不代创建或代签。
 

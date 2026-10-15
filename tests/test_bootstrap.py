@@ -17,6 +17,7 @@ class BootstrapSafety(unittest.TestCase):
         for name in ['node', 'npm', 'ffmpeg', 'ffprobe', 'chrome', '.venv/bin/python']:
             p = root / name;p.parent.mkdir(parents=True, exist_ok=True);p.write_text('preserve')
         stack.enter_context(patch.object(bootstrap, 'ROOT', root))
+        stack.enter_context(patch.dict(bootstrap.os.environ, {'HOME': str(root / 'home')}, clear=True))
         stack.enter_context(patch.object(bootstrap.sys, 'platform', 'darwin'))
         stack.enter_context(patch.object(bootstrap.shutil, 'which', side_effect=lambda n: str(root / n)))
         stack.enter_context(patch.object(bootstrap, 'python_health', return_value={'version': '3.12.0'}))
@@ -50,7 +51,7 @@ class BootstrapSafety(unittest.TestCase):
             self.assertEqual(result['capabilities']['agent_audio_video']['status'], 'not_checked')
 
     def test_unsupported_platform_is_actionable_and_does_not_install(self):
-        with patch.object(bootstrap.sys, 'platform', 'win32'), patch.object(bootstrap, 'run') as run:
+        with patch.dict(bootstrap.os.environ, {'HOME': '/tmp/draftcut-no-user-config'}, clear=True), patch.object(bootstrap.sys, 'platform', 'win32'), patch.object(bootstrap, 'run') as run:
             result = bootstrap.bootstrap(True)
             self.assertEqual(result['status'], 'blocked')
             self.assertIn('POSIX', result['blockers'][0]);run.assert_not_called()

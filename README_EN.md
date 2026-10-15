@@ -53,7 +53,7 @@ If system access, credentials, or cloud upload and paid-service consent is neede
 request it through a secure route.
 ```
 
-The Agent follows the repository's [installation and health-check guide](docs/agent-bootstrap.md), handles setup, and reports what actually works. Supply credentials through secure configuration; keep them out of prompts and Git. Built-in cloud transcription uploads audio and may incur charges, so it still needs your explicit consent.
+The Agent follows the repository's [installation and health-check guide](docs/agent-bootstrap.md), handles setup, and reports what actually works. [Configure the API key once](docs/configuration.md); DraftCut reuses it across projects. Keep credentials out of prompts and Git. Built-in cloud transcription uploads audio and may incur charges, so it still needs your explicit consent.
 
 ### 2. Give it a recording and a direction
 

@@ -6,7 +6,7 @@
 
 ## 1. 转写和导入
 
-内置 ASR 来自 clean-talking-video。使用前取得针对当前素材的云上传／费用授权，不能因用户授权工程改造就调用付费服务。
+内置 ASR 来自 clean-talking-video。使用前确认已有明确云上传／费用授权覆盖当前素材、有效期与预算；有效持续授权直接沿用，不为每个视频重问。没有或超范围时才取得授权，不能把 key 存在或工程改造授权当作付费服务授权。
 
 ```bash
 python3 <skill-root>/scripts/transcribe_audio.py --audio "$source" \

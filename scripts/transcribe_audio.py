@@ -5,13 +5,13 @@ import json
 from pathlib import Path
 import subprocess
 import sys
-from asr_config import asr_capability, load_asr_environment
+from asr_config import asr_capability, config_status, load_asr_environment
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--audio', type=Path)
     parser.add_argument('--output-dir', type=Path)
-    parser.add_argument('--env-file', type=Path, help='Explicit ASR config file; never auto-discovers .env or executes shell syntax')
+    parser.add_argument('--env-file', type=Path, help='Optional override; by default reuse the fixed user ASR config, never scan project .env files')
     parser.add_argument('--check-config', action='store_true', help='Check configuration locally without uploading, authenticating or creating output')
     parser.add_argument('--trim-breaths', choices=['yes', 'no'], default='no',
                         help='Legacy option; ASR never edits audio and does not approve the manuscript')
@@ -21,7 +21,7 @@ def main():
     args = parser.parse_args()
     if args.check_config:
         try:
-            report = asr_capability(load_asr_environment(args.env_file))
+            report = config_status(args.env_file)
         except (ValueError, OSError) as exc:
             parser.error(str(exc))
         print(json.dumps(report, ensure_ascii=False, indent=2))

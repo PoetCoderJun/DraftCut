@@ -15,7 +15,7 @@
 
 内置 DashScope 转写会上传音频且可能收费。配置 `DASHSCOPE_API_KEY`；也接受旧 `DASHSCOPE_ASR_API_KEY`。默认 base URL 是 `https://dashscope.aliyuncs.com`，`DASHSCOPE_ASR_BASE_URL` 优先于 `DASHSCOPE_BASE_URL`。默认模型在现有适配器中为 `qwen3-asr-flash-filetrans`，可配置 `DASHSCOPE_ASR_MODEL`。核对服务账号的区域、模型权限与价格，不静默切换供应商。
 
-通过安全执行环境提供密钥，不放进提示词、日志或 Git；默认不自动加载 `.env`，可由 Agent 显式选择 `--env-file`；见 [配置与能力边界](configuration.md)。转写前须获得针对当前录音的上传／费用授权，`--allow-cloud-asr` 本身不构成授权。云端上传压缩音频代理、异步识别并取回词级结果。已有可信逐词转写可本地导入。语义复核可沿用同模型审听代理识别，也可在审核包中明确披露完整人工试听方式，由用户批准；不会自动增加付费调用。
+通过安全执行环境提供密钥，不放进提示词、日志或 Git；默认自动复用用户级私有配置，首次由安全输入提供一次；`--env-file` 只是可选覆盖，不需要每个项目重复设置。见 [API key 一次配置](configuration.md)。转写前须有明确上传／费用授权，已有持续授权覆盖当前录音时直接沿用，`--allow-cloud-asr` 本身不构成授权。云端上传压缩音频代理、异步识别并取回词级结果。已有可信逐词转写可本地导入。语义复核可沿用同模型审听代理识别，也可在审核包中明确披露完整人工试听方式，由用户批准；不会自动增加付费调用。
 
 ## Full spoken editing
 

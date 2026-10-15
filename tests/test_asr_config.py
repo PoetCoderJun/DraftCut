@@ -18,6 +18,12 @@ import transcribe_audio
 
 
 class FirstRunConfig(unittest.TestCase):
+    def setUp(self):
+        self.home = tempfile.TemporaryDirectory()
+        self.addCleanup(self.home.cleanup)
+        config = patch('asr_config.user_config_path', return_value=Path(self.home.name) / 'asr.env')
+        config.start(); self.addCleanup(config.stop)
+
     def test_missing_configuration_is_actionable_without_output_or_network(self):
         with tempfile.TemporaryDirectory() as folder, patch.dict(os.environ, {}, clear=True), patch.object(subprocess, 'run') as run:
             output = Path(folder) / 'new-asr'
@@ -41,6 +47,7 @@ class FirstRunConfig(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='配置 空格 ') as folder:
             file = Path(folder) / 'private.env'
             file.write_text("export DASHSCOPE_API_KEY='file-primary'\nDASHSCOPE_ASR_API_KEY=legacy-file\nDASHSCOPE_ASR_MODEL=custom # comment\nUNRELATED_SECRET=not-forwarded\n")
+            file.chmod(0o600)
             result = load_asr_environment(file, {'DASHSCOPE_API_KEY': 'process-primary'})
             self.assertEqual(dashscope_settings(result, language=None).api_key, 'process-primary')
             self.assertEqual(result['DASHSCOPE_ASR_MODEL'], 'custom')
@@ -60,6 +67,7 @@ class FirstRunConfig(unittest.TestCase):
             marker = Path(folder) / 'executed'
             for value in [f'$(touch {marker})', f'`touch {marker}`', '${PRIVATE_KEY}']:
                 file = Path(folder) / 'private.env'; file.write_text('DASHSCOPE_API_KEY=' + value)
+                file.chmod(0o600)
                 with self.assertRaises(ValueError) as error: load_asr_environment(file, {})
                 self.assertNotIn(value, str(error.exception)); self.assertFalse(marker.exists())
 
@@ -76,6 +84,7 @@ class FirstRunConfig(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             source = Path(folder) / '输入 文件.wav'; source.write_bytes(b'fixture')
             config = Path(folder) / 'settings.env'; config.write_text('DASHSCOPE_API_KEY=synthetic-file\n')
+            config.chmod(0o600)
             output = Path(folder) / 'new-asr'
             args = ['asr', '--audio', str(source), '--output-dir', str(output), '--env-file', str(config), '--allow-cloud-asr']
             with patch.dict(os.environ, {}, clear=True), patch.object(sys, 'argv', args), patch.object(subprocess, 'run') as run:
