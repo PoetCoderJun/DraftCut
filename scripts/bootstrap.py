@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from asr_config import asr_capability, load_asr_environment
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -78,10 +79,6 @@ def node_health(node, npm):
 
 
 def media_health(ffmpeg, ffprobe, chrome, node):
-    script = ("import {resolveBrowserExecutable} from './scripts/local_browser.mjs';"
-              "console.log(resolveBrowserExecutable(process.argv[1]));")
-    # This also checks native ARM64 Node on Apple Silicon and verifies full Chrome.
-    launcher = run([node, '--input-type=module', '-e', script, chrome])
     with tempfile.TemporaryDirectory(prefix='draftcut-health-') as temp:
         folder = Path(temp)
         sample = folder / 'check.mp4'
@@ -98,20 +95,26 @@ def media_health(ffmpeg, ffprobe, chrome, node):
                         f'<script src="{gsap}"></script><script>'
                         'gsap.set("#probe",{x:42});document.querySelector("#probe").dataset.draftcutHealth="passed";'
                         '</script>')
-        dom = run([chrome, '--headless=new', '--disable-gpu', '--no-first-run',
-                   '--no-default-browser-check', '--disable-background-networking', '--disable-component-update',
-                   '--disable-default-apps', '--disable-extensions', '--disable-sync', '--metrics-recording-only',
-                   '--mute-audio', f'--user-data-dir={folder / "chrome-profile"}', '--dump-dom', page.as_uri()], timeout=45)
-        if 'data-draftcut-health="passed"' not in dom:
-            raise RuntimeError('Full Chrome did not execute local GSAP')
+        # Validate full Chrome, native Apple Silicon execution, JS evaluation and clean
+        # shutdown using the same pinned browser automation dependency as the renderer.
+        browser = json.loads(run([node, ROOT / 'scripts/browser_health.mjs', chrome, page], timeout=120))
     return {'ffmpeg': 'local H.264/AAC encode and full decode passed',
-            'chrome': 'local headless full-Chrome + GSAP passed', 'render_launcher': launcher}
+            **browser}
 
 
-def bootstrap(install=False, chrome_override=None):
+def bootstrap(install=False, chrome_override=None, env_file=None):
     report = {'schema': 'draftcut.bootstrap.v1', 'status': 'blocked', 'repository': str(ROOT),
               'actions': [], 'checks': {}, 'blockers': [],
               'scope': 'local dependency and media checks; no cloud ASR, approvals, real-media or creative certification'}
+    try:
+        report['capabilities'] = {
+            'asr': asr_capability(load_asr_environment(env_file)),
+            'human_approval': {'status': 'not_checked', 'action': 'The owner sets up and signs in their own terminal; HOME/XDG overrides do not change the OS-account trust anchor. See docs/approvals.md'},
+            'agent_audio_video': {'status': 'not_checked', 'action': 'Check actual listening and continuous viewing in the current Agent channel; dependency health cannot establish these capabilities'},
+        }
+    except (ValueError, OSError) as error:
+        report['blockers'].append(str(error))
+        return report
     checks = report['checks']
     if sys.platform not in ('darwin', 'linux'):
         report['blockers'].append('Current workflow needs macOS/Linux POSIX support; no new platform installation attempted')
@@ -121,8 +124,9 @@ def bootstrap(install=False, chrome_override=None):
         return report
     checks['python_host'] = {'status': 'passed', 'version': sys.version.split()[0], 'path': sys.executable}
     node, npm, ffmpeg, ffprobe = (shutil.which(n) for n in ('node', 'npm', 'ffmpeg', 'ffprobe'))
-    chrome = chrome_override or next((str(p) for p in (
+    chrome = chrome_override or os.environ.get('DRAFTCUT_CHROME') or next((str(p) for p in (
         Path('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'),
+        Path.home() / 'Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
         Path('/usr/bin/google-chrome'), Path('/usr/bin/google-chrome-stable')) if p.is_file()), None)
     if not chrome:
         chrome = shutil.which('google-chrome') or shutil.which('google-chrome-stable')
@@ -169,7 +173,8 @@ def bootstrap(install=False, chrome_override=None):
         checks['node_dependencies'] = {'status': 'passed', 'versions': packages}
         checks['media'] = {'status': 'passed', **media_health(ffmpeg, ffprobe, chrome, node)}
         report['runtime'] = {'python': str(python), 'node': node, 'chrome': chrome,
-                             'path_prefix': [str(venv / 'bin'), str(Path(node).parent)]}
+                             'path_prefix': [str(venv / 'bin'), str(Path(node).parent)],
+                             'environment': {'DRAFTCUT_CHROME': str(Path(chrome).resolve())}}
         report['status'] = 'ready'
     except (RuntimeError, ValueError, KeyError, OSError, subprocess.TimeoutExpired) as error:
         report['blockers'].append(str(error) if not isinstance(error, subprocess.TimeoutExpired) else 'Local install/health command timed out; inspect the environment before retrying')
@@ -180,8 +185,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--install', action='store_true', help='Install missing project dependencies; reuse already healthy ones')
     parser.add_argument('--browser-executable', help='Existing full Google Chrome path; never downloads a browser')
+    parser.add_argument('--env-file', type=Path, help='Explicit ASR config for the local capability report; not needed for local installation')
     args = parser.parse_args()
-    report = bootstrap(args.install, args.browser_executable)
+    report = bootstrap(args.install, args.browser_executable, args.env_file)
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0 if report['status'] == 'ready' else 1
 

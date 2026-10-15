@@ -12,9 +12,20 @@ const LOCAL_BROWSER_CANDIDATES = [ // macOS / Linux / Windows
   "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
 ];
 
+export function findBrowserExecutable(value, env = process.env) {
+  const selected = value || env.DRAFTCUT_CHROME;
+  if (selected === 'managed') throw new Error('DraftCut requires local full Chrome; managed is not supported.');
+  if (selected) return path.resolve(selected);
+  const candidates = [...LOCAL_BROWSER_CANDIDATES];
+  if (env.HOME) candidates.push(path.join(env.HOME, 'Applications/Google Chrome.app/Contents/MacOS/Google Chrome'));
+  for (const dir of (env.PATH || '').split(path.delimiter).filter(Boolean))
+    for (const name of ['google-chrome', 'google-chrome-stable']) candidates.push(path.join(dir, name));
+  return candidates.find(candidate => existsSync(candidate));
+}
+
 export const resolveBrowserExecutable = (value) => {
   if (value === "managed") throw new Error("DraftCut requires local full Chrome; managed is not supported.");
-  const found = value ? path.resolve(value) : LOCAL_BROWSER_CANDIDATES.find((candidate) => existsSync(candidate));
+  const found = findBrowserExecutable(value);
   if (!found)
     throw new Error(
       "未找到本机完整 Chrome。请安装 Chrome 或用 --browser-executable 指定 Chrome 路径。"

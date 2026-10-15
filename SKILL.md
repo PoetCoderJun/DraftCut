@@ -11,7 +11,7 @@ description: Turn natural speech into a refined original-voice narration and a p
 
 用户只需说“请使用 DraftCut 的 Skill，把这个文件做成一个视频。我想要的样式和风格是……”。以下流程、独立目录、原声保护、两道审核由本 Skill 默认负责，不要求用户补写操作步骤。Agent 自选新的项目目录；风格缺少细节时结合内容提出一个方案，不为可选偏好连续追问。已有可靠转写和健康依赖优先复用。
 
-DraftCut 是本次专用工作流的负责人，HyperFrames 用作底层制作与渲染。按需要读取 HyperFrames 的结构、动画和CLI规范，不另启一套重复的用户创意访谈；将本次已有素材/风格写入工程 brief，后续问题集中在可读提案的必要取舍上。
+DraftCut 是本次专用工作流的负责人，HyperFrames 用作底层制作与渲染。按需要读取 HyperFrames 的结构、动画和 CLI 规范；没有外部 HyperFrames Skill 时，使用本仓库 references 与锁定 CLI 的 `--help`，不依赖作者安装的私有 Skill，不另启一套重复的用户创意访谈；将本次已有素材/风格写入工程 brief，后续问题集中在可读提案的必要取舍上。
 
 用 Codex 对话交付可读稿件、简短删改理由和导演方案，用户以自然语言确认具体版本；不另建展示网页或操作平台，不把内部 hash、JSON、目录规划、测试签名命令当作用户的制作工作。内部证据由 Agent 管理。生产签名尚未配置时，按[审批设置](docs/approvals.md)明确说明一次安全配置要求，不能伪造签名或把聊天确认说成已经过验证的签名。
 
@@ -27,7 +27,7 @@ DraftCut 是本次专用工作流的负责人，HyperFrames 用作底层制作�
 
 ## 从仓库链接安装
 
-用户只需把仓库链接交给 Agent。安装或环境未知时，先读 [Agent 安装与健康检查](docs/agent-bootstrap.md)：检查并复用已有环境，在安全副本安装缺失依赖，运行本地健康检查并如实报告结果。由 Agent 执行配置，不向用户罗列终端安装命令或多个安装入口。系统权限、密钥及素材上传／费用仍须安全处理，不能因用户要求安装就代签审批或自动调用付费 ASR。
+用户只需把仓库链接交给 Agent。安装或环境未知时，先读 [Agent 安装与健康检查](docs/agent-bootstrap.md)：检查并复用已有环境，在安全副本安装缺失依赖，运行本地健康检查并如实报告结果。由 Agent 执行配置，不向用户罗列终端安装命令或多个安装入口。按[配置与能力边界](docs/configuration.md) 区分本地依赖、可选 ASR 凭据、owner 签名及当前通道的真实视听能力；`.env` 不自动发现，需要时显式传 `--env-file`。沿用健康报告的 Python、PATH 和 `DRAFTCUT_CHROME`。系统权限、密钥及素材上传／费用仍须安全处理，不能因用户要求安装就代签审批或自动调用付费 ASR。
 
 ## 两次人工审核
 

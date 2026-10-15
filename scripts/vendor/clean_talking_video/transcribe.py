@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import subprocess
 import sys
@@ -12,10 +13,15 @@ import time
 import uuid
 from pathlib import Path
 from typing import Any, Mapping, Optional
+from urllib.parse import urlsplit
 
 
 DEFAULT_DASHSCOPE_BASE_URL = "https://dashscope.aliyuncs.com"
 DEFAULT_DASHSCOPE_MODEL = "qwen3-asr-flash-filetrans"
+
+
+class DashScopeError(RuntimeError):
+    """A service failure containing only locally authored, safe diagnostic text."""
 
 
 class DashScopeSettings:
@@ -43,15 +49,17 @@ def report_progress(step: int, total: int, message: str) -> None:
 
 
 def dashscope_api_key(environ: Mapping[str, str]) -> str:
-    return str(
-        environ.get("DASHSCOPE_ASR_API_KEY")
-        or environ.get("DASHSCOPE_API_KEY")
-        or ""
-    ).strip()
+    return next((str(environ.get(name) or '').strip()
+                 for name in ('DASHSCOPE_ASR_API_KEY', 'DASHSCOPE_API_KEY')
+                 if str(environ.get(name) or '').strip()), '')
 
 
 def normalize_dashscope_base_url(value: str) -> str:
     base_url = str(value or DEFAULT_DASHSCOPE_BASE_URL).strip().rstrip("/")
+    parsed = urlsplit(base_url)
+    if (parsed.scheme != 'https' or not parsed.hostname or parsed.username or parsed.password
+            or parsed.query or parsed.fragment):
+        raise ValueError('DASHSCOPE_ASR_BASE_URL / DASHSCOPE_BASE_URL must be an HTTPS URL without credentials, query or fragment')
     for suffix in ("/compatible-mode/v1", "/api/v1"):
         if base_url.endswith(suffix):
             return base_url[: -len(suffix)]
@@ -65,7 +73,17 @@ def dashscope_settings(
 ) -> DashScopeSettings:
     api_key = dashscope_api_key(environ)
     if not api_key:
-        raise RuntimeError("DASHSCOPE_API_KEY is required for DashScope transcription")
+        raise RuntimeError('DashScope transcription needs DASHSCOPE_API_KEY (or DASHSCOPE_ASR_API_KEY). '
+                           'Inject it securely or select --env-file with transcribe_audio.py; .env is not auto-loaded. '
+                           'A trusted word-timestamp transcript can be imported without a cloud key.')
+    def interval(name, default, minimum):
+        try:
+            value = float(environ.get(name) or default)
+        except (ValueError, TypeError):
+            raise ValueError(f'{name} must be a finite positive number') from None
+        if not math.isfinite(value) or value <= 0:
+            raise ValueError(f'{name} must be a finite positive number')
+        return max(minimum, value)
     return DashScopeSettings(
         base_url=normalize_dashscope_base_url(
             str(
@@ -79,14 +97,8 @@ def dashscope_settings(
             environ.get("DASHSCOPE_ASR_MODEL") or DEFAULT_DASHSCOPE_MODEL
         ).strip(),
         language=(str(language).strip() if language else None),
-        poll_seconds=max(
-            0.5,
-            float(environ.get("DASHSCOPE_ASR_POLL_SECONDS") or 2.0),
-        ),
-        timeout_seconds=max(
-            30.0,
-            float(environ.get("DASHSCOPE_ASR_TIMEOUT_SECONDS") or 3600.0),
-        ),
+        poll_seconds=interval('DASHSCOPE_ASR_POLL_SECONDS', 2.0, 0.5),
+        timeout_seconds=interval('DASHSCOPE_ASR_TIMEOUT_SECONDS', 3600.0, 30.0),
     )
 
 
@@ -105,11 +117,10 @@ def _check_response(response: Any, *, stage: str) -> None:
     try:
         response.raise_for_status()
     except Exception as exc:
-        detail = str(getattr(response, "text", "") or "").strip()
-        if len(detail) > 1000:
-            detail = detail[:1000]
-        suffix = f": {detail}" if detail else ""
-        raise RuntimeError(f"DashScope {stage} failed{suffix}") from exc
+        # Service bodies may echo credentials, prompt text or signed upload URLs.
+        status = getattr(response, 'status_code', None)
+        label = f' (HTTP {status})' if isinstance(status, int) else ''
+        raise DashScopeError(f'DashScope {stage} failed{label}; check account region, model access, quota and network. Service response withheld.') from exc
 
 
 def upload_to_dashscope_temporary(
@@ -286,16 +297,11 @@ def transcribe_dashscope_task(
         if last_status == "SUCCEEDED" and transcription_url:
             break
         if last_status in {"FAILED", "CANCELED", "CANCELLED"}:
-            message = str(
-                output.get("message")
-                or poll_response.json().get("message")
-                or "unknown error"
-            )
-            raise RuntimeError(f"DashScope task failed: {message}")
+            raise DashScopeError(f'DashScope task {last_status}; check account region, model access and quota. Service message withheld.')
         time.sleep(settings.poll_seconds)
     if not transcription_url:
-        raise RuntimeError(
-            f"DashScope task timed out with status {last_status or 'unknown'}"
+        raise DashScopeError(
+            'DashScope task timed out; check network access and service status'
         )
 
     result_response = client.get(
@@ -497,8 +503,11 @@ def transcribe_dashscope(
             settings=settings,
             prompt=prompt,
         )
+    except DashScopeError:
+        raise
     except Exception as exc:
-        raise RuntimeError(f"DashScope transcription failed: {exc}") from exc
+        raise RuntimeError('DashScope transcription failed; check network access, account region, model permission and quota. '
+                           'Service details and temporary URLs are withheld.') from exc
     payload = dashscope_result_to_transcript(
         result,
         source=source,
@@ -558,15 +567,13 @@ def main() -> int:
     args = parse_args()
     if not args.input.is_file():
         raise FileNotFoundError(args.input)
+    settings = dashscope_settings(os.environ, language=args.language)
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     payload = transcribe_dashscope(
         args.input,
         output_dir=args.output_dir,
-        settings=dashscope_settings(
-            os.environ,
-            language=args.language,
-        ),
+        settings=settings,
         prompt=args.prompt,
     )
     transcript_path = args.output_dir / "transcript.json"
