@@ -19,3 +19,16 @@ Existing local clones and installed Skills are not renamed or overwritten. In a 
 The rebrand preserves `motiontalk.audio-preparation.v1`, `motiontalk.quality-report.v1`, `.motiontalk-render.lock` and the internal `MOTIONTALK_CHROME` handoff so existing reports, concurrent-render protection and browser launching keep their contracts. A legacy Python module name in the validation example is also harmless and retained. CLI arguments, output names, dependency versions and approval behavior are unchanged. The private npm runtime package is renamed to `draftcut-hyperframes-runtime`; it is not published to npm.
 
 This integration imported ASR and selective breath-gap preparation. It did not import the broader semantic cleanup workflow or its full-subtitle approval gate. The current human creative approval is the video director script and plan; audio preparation is not a second mandatory manuscript-approval stage. See [the review table](getting-started.md#what-you-review).
+
+## Integration scope evidence
+
+The limited scope predates the DraftCut rename. The original integration commit [9f7fbdd](https://github.com/PoetCoderJun/DraftCut/commit/9f7fbddb09c588c43ac29944a851c5ac5f7bd9da) explicitly states in its [migration note](https://github.com/PoetCoderJun/DraftCut/blob/9f7fbddb09c588c43ac29944a851c5ac5f7bd9da/docs/audio-first-migration.md#L7-L9) that preparation edits reviewed breath gaps and does not inherit broader filler/retake editing. The commit records that scope, but does not explain a broader product rationale for choosing it.
+
+The public implementation matches that decision:
+
+- The imported vendor directory contains the ASR adapter, its package marker and license. [transcribe_audio.py](../scripts/transcribe_audio.py#L24) invokes only that transcription adapter, not a semantic video-editing workflow.
+- [prepare_audio.py](../scripts/prepare_audio.py#L54) proposes gaps **between word timestamps**, initially unclassified and unapproved. Its `selected_deletions` function accepts only approved `kind=breath` intervals with a listening reason, and rejects intervals overlapping speech. It does not select spoken phrases or retakes for removal.
+- The preparation review binds selected gaps to an audio hash; it is not a whole-transcript user approval. [validate_plan.py](../scripts/validate_plan.py#L29) checks the director plan's approval and the explicit breath choice, but has no separate manuscript/subtitle-review approval state.
+- [Planning](../references/01-plan.md) proceeds from prepared audio and aligned subtitles to the director script and machine plan. [The Skill](../SKILL.md) routes approval of that plan into production and delivery; no intervening spoken-manuscript approval stage is defined.
+
+因此，可以确认当时合入的是转写与气口准备，完整语义精剪及其独立审核流程并未接入；不能把“合入 clean-talking”解读为全部能力迁移。这里仅记录已有实现，没有新增流程或改变审核规则。

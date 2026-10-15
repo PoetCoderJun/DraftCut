@@ -40,6 +40,12 @@ Before the Agent runs ASR, explicitly authorize uploading the chosen recording a
 
 The public workflow and exact commands live in [audio preparation](../references/00-audio.md). Source audio is preserved, and every run needs a new empty output directory.
 
+## Breath editing
+
+选择剪气口后，Agent 必须结合词级时间戳与实际试听筛选间隙，选中气口默认保留 **0.25 秒**，短于目标的不动；思考与强调停顿应保留。不剪时保留时间线。当前没有集成填充词、口误和重说的语义删除，不能将气口授权当作内容删改授权。
+
+The default retained length is **0.25 seconds** for each listening-reviewed breath gap. Shorter gaps stay unchanged. Intentional thinking and emphasis pauses should stay. No-trim preserves the timeline. Semantic removal of fillers, mistakes and retakes is not integrated; permission to trim breath gaps is not permission to remove spoken content.
+
 ## Video input
 
 The production timeline is audio-first. If you have a talking video, authorize extracting its original audio and keep the video as an optional visual asset. For example, from a directory containing `my-talk.mp4`:
@@ -87,3 +93,16 @@ python3 examples/plan-validation/run.py
 These use synthetic fixtures and mocked service results, not private recordings or live cloud models. Optional [audio-only smoke rendering](../examples/audio-only-smoke/README.md) checks the renderer, not an end-to-end creator project or the 100× aspiration.
 
 The README SVGs are original, editable vector illustrations authored for DraftCut. Their dialogues, waveforms and layouts are schematic, not screenshots, measured before/after results or a product UI. They contain no external fonts, scripts or linked assets. Existing creator GIFs are separately labeled as prior finished work.
+
+## Examples and validation
+
+首页讲产品体验，以下记录对应的验证范围：
+
+- **Agent 与模型：**兼容条件是本地文件读写、命令执行、看图和实际试听能力，尚未逐一验证所有 Agent。Opus 5.5、ChatGPT 6 Astra、Kimi k3 是作者推荐，并非兼容性认证；以使用平台的模型和工具能力为准。
+- **成片示例：**Vibe Working GIF 来自作者既有成片 00:39–01:27；另一个图解 GIF 来自既有具身 AI 视频的最后 30 秒。两者均为 6 倍速无声片段，用于展示视觉表达，不是当前录音到成片版本的端到端验收。
+- **效率目标：**100 倍是减少人工剪辑投入的愿景，目前没有人工剪辑对照基准，也不是普遍实测保证。实际耗时取决于素材、Agent、审核与渲染环境。
+- **质量判断：**转写可能误识别，剪口需要实际试听，画面需要连续观看。技术脚本通过只覆盖其结构、时间线和媒体规格检查，不证明语义、听感或创意质量。未执行的视听检查须如实记录。
+
+Agent support is defined by tool capabilities, not by a fully tested compatibility matrix. The named models are the author's recommendations, not certifications. The two silent 6× creator GIFs show existing work, not end-to-end validation of this audio-first release. The efficiency aspiration has no comparative benchmark or universal timing guarantee. Technical checks, continuous visual review and listening assess different things; record what was actually checked.
+
+For the exact integration scope and its code evidence, see [audio-first migration](audio-first-migration.md#integration-scope-evidence).
