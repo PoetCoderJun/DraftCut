@@ -57,4 +57,6 @@ DraftCut 是本次专用工作流的负责人，HyperFrames 用作底层制作�
 
 使用锁定 Hyperframes 0.8.30、GSAP 3.14.2，Node >=22，Python 3.10+、FFmpeg 与本机完整 Chrome。主入口 `hyperframes/index.html`，单一批准音频 `assets/narration.wav`；DOM/SVG 字幕图形可编辑。GSAP 暂停、可 seek，注册 `window.__timelines.master`，不使用系统时钟、随机状态或远程字体。初始化只是 scaffold，完成内容创作和真实连续预览后才能 production 导出。固定单 worker；软件编码须明确选择。
 
+本机 `check`/`snapshot` 使用 `scripts/hf.mjs`，由入口自动配置完整 Chrome 与导航预算，见[制作](references/02-build.md)。私有素材的 snapshot 显式关闭外部图片分析。
+
 技术检查与实际连续观看、试听分别记录，没做的标 pending。保留全链路原声采样映射、完整词、SRT 毫秒边界、视频帧分配和解码报告。最终交付 MP4，可编辑工程和审核证据留在项目目录。其他私有业务不在本 Skill 范围内，不复制其代码、素材或凭据。

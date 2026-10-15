@@ -12,8 +12,12 @@ node <skill-root>/scripts/init_project.mjs --project-dir "$output_dir/hyperframe
 
 ```bash
 node <skill-root>/scripts/hf.mjs lint "$output_dir/hyperframes"
+node <skill-root>/scripts/hf.mjs check "$output_dir/hyperframes"
+node <skill-root>/scripts/hf.mjs snapshot "$output_dir/hyperframes" --describe false
 node <skill-root>/scripts/hf.mjs preview "$output_dir/hyperframes"
 ```
+
+浏览器诊断使用 `hf.mjs` 入口，由它配置本机完整 Chrome（含 Apple Silicon wrapper）和默认 45 秒导航预算；不要求用户手工拼接浏览器环境变量。已有明确的 `PRODUCER_PAGE_NAVIGATION_TIMEOUT_MS` 设置会保留。`--timeout` 是底层诊断的初始化等待，不能替代导航预算。私有素材默认 `--describe false`，不调用外部图像分析。沙箱禁止回环服务或 Chrome 时沿正常工具授权路径处理，不通过增加超时掩盖权限失败。
 
 连续预览覆盖开头、转场、密集内容和结尾；截图抽查不等于连续观看。核对字幕同步并实际试听；未执行就标 pending。完成制作后记录真实证据：
 
