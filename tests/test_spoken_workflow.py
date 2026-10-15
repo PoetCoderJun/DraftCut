@@ -146,4 +146,10 @@ class SpokenWorkflowTests(unittest.TestCase):
         html=p/'hyperframes/index.html';html.write_text(html.read_text().replace('个用户不是','个用户是'))
         with self.assertRaisesRegex(ValueError,'caption text'):assert_director(plan,p/'hyperframes')
 
+    def test_27_missing_listening_evidence_blocks_with_actionable_message(self):
+        p,k=self.draft();(p/'semantic-review.json').unlink()
+        with self.assertRaisesRegex(ValueError,'Complete source and review-proxy listening'):manuscript_request(p)
+        self.assertFalse((p/'prepared').exists())
+        self.assertFalse(list(p.glob('reviews/**/request.json')))
+
 if __name__=='__main__':unittest.main()

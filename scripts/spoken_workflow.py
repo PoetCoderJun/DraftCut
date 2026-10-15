@@ -39,7 +39,9 @@ def semantic_evidence(p,timeline):
     proxy=read(p/'preview.json');base=manuscript_base(p)
     if proxy.get('manuscript_digest')!=base or sha(proxy['audio'])!=proxy['audio_sha256']:raise ValueError('Semantic review proxy is missing/stale; regenerate and listen again')
     verify_splice(p,timeline,proxy['audio'])
-    e=read(p/'semantic-review.json')
+    evidence_path=p/'semantic-review.json'
+    if not evidence_path.is_file():raise ValueError('Complete source and review-proxy listening before requesting manuscript approval; record honest semantic findings in '+str(evidence_path))
+    e=read(evidence_path)
     if e.get('manuscript_digest')!=base or e.get('preview_sha256')!=proxy['audio_sha256']:raise ValueError('Semantic review evidence is stale')
     mode=e.get('mode');m,_,words=source_state(p)
     if set(e.get('reviewed_word_ids',[]))!={w['id'] for w in words}:raise ValueError('Semantic review must cover every source word, not just mechanical candidates')

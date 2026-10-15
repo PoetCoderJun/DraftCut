@@ -19,8 +19,10 @@ def write(path,value):Path(path).write_text(json.dumps(value,ensure_ascii=False,
 def joined(words):
     out=''
     for word in words:
-        t=str(word)
-        if out and t and out[-1].isascii() and out[-1].isalnum() and t[0].isascii() and t[0].isalnum():out+=' '
+        t=str(word['text'] if isinstance(word,dict) else word)
+        separator=word.get('separator_before') if isinstance(word,dict) else None
+        if out and separator is not None:out+=separator
+        elif out and t and out[-1].isascii() and out[-1].isalnum() and t[0].isascii() and t[0].isalnum():out+=' '
         out+=t
     return out
 
@@ -30,9 +32,20 @@ def canonical_transcript(value,duration):
     for si,s in enumerate(t['segments']):
         if not s.get('words'):raise ValueError('Full spoken editing requires word timestamps in every segment')
         s['id']=f's{si:04}'
-        for w in s['words']:
+        # ASR can split one number/acronym into several timed words (11, AGI,
+        # POC). Recover separators from the segment text, never by guessing
+        # whether adjacent Latin tokens form a phrase or a single word.
+        cursor=0;segment_text=s['text']
+        for wi,w in enumerate(s['words']):
             if not str(w.get('text','')).strip():raise ValueError('Word text is empty')
             if float(w['start'])<last_end-1e-6:raise ValueError('Word timestamps overlap or are out of order; correct ASR first')
+            w.pop('separator_before',None)
+            if cursor is not None:
+                rest=segment_text[cursor:];gap=rest[:len(rest)-len(rest.lstrip())];token=str(w['text'])
+                if rest[len(gap):].startswith(token):
+                    if wi:w['separator_before']=' ' if gap else ''
+                    cursor+=len(gap)+len(token)
+                else:cursor=None # mismatched ASR text: retain the conservative fallback
             last_end=float(w['end']);w['id']=f'w{len(flat):05}';w['segment_id']=s['id'];flat.append(w)
     t.update(version='talking-head-transcript.v1',duration_seconds=duration)
     return t,flat
@@ -129,6 +142,7 @@ def compile_edit(project):
         if len(matches)!=1:raise ValueError('A retained word was split, duplicated or removed: '+wid)
         s=matches[0];oa=s['output_start_sample']+a-s['source_start_sample'];ob=s['output_start_sample']+b-s['source_start_sample']
         mapped.append({'id':wid,'text':corrections.get(wid,{}).get('text',w['text']),'source_text':w['text'],
+                       'separator_before':w.get('separator_before'),
                        'source_start_sample':a,'source_end_sample':b,'start_sample':oa,'end_sample':ob,'start':oa/SR,'end':ob/SR})
     # No kept interval may include even part of a deliberately deleted word.
     for wid,row in decisions.items():
@@ -141,14 +155,14 @@ def compile_edit(project):
     for group in groups:
         ws=[by_id[i] for i in group]
         if not ws:raise ValueError('Empty caption group')
-        captions.append({'start':ws[0]['start'],'end':ws[-1]['end'],'text':joined([w['text'] for w in ws]),'word_ids':group})
+        captions.append({'start':ws[0]['start'],'end':ws[-1]['end'],'text':joined(ws),'word_ids':group})
     blocks=[]
     for i,c in enumerate(captions,1):
         if round(c['end']*1000)<=round(c['start']*1000):raise ValueError('Caption is shorter than SRT millisecond precision; group adjacent words')
         blocks.append(f"{i}\n{format_srt_timestamp(c['start'])} --> {format_srt_timestamp(c['end'])}\n{c['text']}")
     return {'schema':'draftcut.edit-timeline.v2','sample_rate':SR,'source_samples':m['source_samples'],'output_samples':out,
             'duration_seconds':out/SR,'segments':segments,'words':mapped,'captions':captions,'srt':'\n\n'.join(blocks)+'\n',
-            'source_text':joined([w['text'] for w in words]),'refined_text':joined([w['text'] for w in mapped]),'reordered':order!=natural}
+            'source_text':joined(words),'refined_text':joined(mapped),'reordered':order!=natural}
 
 def splice(project,timeline,destination):
     destination=Path(destination)
