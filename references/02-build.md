@@ -36,6 +36,8 @@ node <skill-root>/scripts/hf.mjs preview "$output_dir/hyperframes"
 
 `main-audio` 必须是唯一有声元素，从零播放批准 WAV，unity gain、原速；视觉视频必须 muted。字幕保留 `caption-0` 等稳定 ID、批准文字与时间，可在内部加入强调 span。门禁会检查静态 DOM 文本和时间，批准 WAV/SRT 文件必须保持字节一致；实际连续预览仍需确认运行时效果。
 
+音频样本时长经常不在视频帧网格上。根画布和末场视觉应覆盖 `ceil(audio_seconds × fps)` 个输出帧，沿用 scaffold 的 `visualFrameEnd` 边界，避免把末场在向下取整的时刻隐藏。只扩展末帧的视觉覆盖，不改批准音频、字幕或计划的样本时间。特别核对实际最后一帧，较早的结尾截图不能证明末帧正常。
+
 锁定版本 Studio 若出现空画布等预览问题，可用同工程的本机连续预览替代，不升级运行时：
 
 ```bash
