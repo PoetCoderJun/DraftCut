@@ -60,10 +60,10 @@ def preview(p):
 
 def semantic_evidence(p,timeline):
     proxy=read(p/'preview.json');base=manuscript_base(p)
-    if proxy.get('manuscript_digest')!=base or sha(proxy['audio'])!=proxy['audio_sha256']:raise ValueError('Semantic review proxy is missing/stale; regenerate and listen again')
+    if proxy.get('manuscript_digest')!=base or sha(proxy['audio'])!=proxy['audio_sha256']:raise ValueError('Semantic review proxy is missing/stale; regenerate and review the full manuscript again')
     verify_splice(p,timeline,proxy['audio'])
     evidence_path=p/'semantic-review.json'
-    if not evidence_path.is_file():raise ValueError('Complete source and review-proxy listening before requesting manuscript approval; record honest semantic findings in '+str(evidence_path))
+    if not evidence_path.is_file():raise ValueError('Complete full manuscript review before requesting manuscript approval; record text-review or ASR evidence in '+str(evidence_path))
     e=read(evidence_path)
     if e.get('manuscript_digest')!=base or e.get('preview_sha256')!=proxy['audio_sha256']:raise ValueError('Semantic review evidence is stale')
     mode=e.get('mode');m,_,words=source_state(p)
@@ -72,25 +72,30 @@ def semantic_evidence(p,timeline):
         from simulation import context
         scoped=context(p,m)
         if not scoped or e.get('run_id')!=scoped[0]['run_id'] or e.get('scope')!='usability-test-only' or e.get('hearing')!='not-tested':
-            raise ValueError('Simulation evidence cannot substitute for production listening')
+            raise ValueError('Simulation evidence cannot substitute for production review')
         if e.get('source_listened_seconds')!=0 or e.get('preview_listened_seconds')!=0:raise ValueError('Do not invent listening in a simulation')
-    else:
+    elif mode=='text-review' or (mode=='same-model-asr' and e.get('hearing')=='not-tested'):
+        if e.get('hearing')!='not-tested' or any(e.get(field)!=0 for field in ('source_listened_seconds','preview_listened_seconds')):
+            raise ValueError('Text-only review must honestly record hearing=not-tested and zero listened seconds')
+        if not str(e.get('review_disclosure','')).strip():raise ValueError('Disclose full text review and the absence of listening')
+    elif mode=='human-listening' or mode=='synthetic' or mode=='same-model-asr':
         for field,expected in [('source_listened_seconds',timeline['source_samples']/SR),('preview_listened_seconds',timeline['duration_seconds'])]:
             if abs(float(e.get(field,-1))-expected)>.001:raise ValueError('Record actual complete source and proxy listening before requesting approval')
-    if not str(e.get('findings','')).strip():raise ValueError('Record semantic findings and boundary listening')
+    if not str(e.get('findings','')).strip():raise ValueError('Record full manuscript findings and unresolved wording')
     if mode=='same-model-asr':
         path=Path(e['asr_transcript']);asr=read(path)
         if sha(path)!=e.get('asr_sha256') or str(Path(asr.get('source','')).resolve())!=str(Path(proxy['audio']).resolve()):raise ValueError('Semantic ASR does not match the reviewed proxy')
         if not e.get('source_model') or e['source_model']!=e.get('review_model'):raise ValueError('Semantic ASR must use the source model')
         if abs(float(asr.get('duration_seconds',0))-timeline['duration_seconds'])>.1:raise ValueError('Semantic ASR has the wrong duration')
         if not asr.get('segments'):raise ValueError('Semantic ASR transcript is empty')
+    elif mode=='text-review':pass
     elif mode=='human-listening':
         if not str(e.get('offline_review_disclosure','')).strip():raise ValueError('Disclose the complete listening alternative to cloud re-ASR in the review')
     elif mode=='simulation':pass
     elif mode=='synthetic':
         if not m.get('example_only'):raise ValueError('Synthetic semantic evidence cannot approve a production project')
         project_trust(p)
-    else:raise ValueError('Use same-model-asr, disclosed human-listening, or the restricted synthetic fixture')
+    else:raise ValueError('Use text-review, same-model-asr, optional human-listening, or the restricted synthetic fixture')
     return e,proxy
 
 def sync(p,subject):
@@ -133,8 +138,8 @@ def manuscript_request(p):
         if x.get('sensitive_change_reason'):reason+=' · SENSITIVE: '+x['sensitive_change_reason']
         lines.append('| '+' | '.join(map(cell,[w['id'],w['text'],x['action'],x['category'],reason]))+' |')
     lines+=['\n## 改口、纠错、移序与停顿 / Additional changes',canonical({'corrections':d.get('corrections',{}),'order':d['order'],'reorder_reason':d.get('reorder_reason',''),'pause_deletions':d.get('pause_deletions',[])}),
-            '\n## 审听 / Listening',str(proxy['audio']),canonical(e),'\n## 完整字幕 / Complete output-timed subtitles\n```srt\n'+timeline['srt']+'```',
-            '\n签名确认此素材、此稿件、此时间线和披露的语义复核方式。只有确认后才生成正式精炼音频；没有 TTS 补词。 / Approve only after reviewing the exact source, edit and listening evidence.']
+            '\n## 文稿复核方式 / Manuscript review method',str(proxy['audio']),canonical(e),'\n## 完整字幕 / Complete output-timed subtitles\n```srt\n'+timeline['srt']+'```',
+            '\n签名确认此素材、此稿件、此时间线和披露的语义复核方式。只有确认后才生成正式精炼音频；没有 TTS 补词。 / Approve only after reviewing the exact manuscript, edits, subtitles and disclosed review method; listening is optional.']
     review='\n'.join(lines)+'\n';immutable(folder/'review.md',review);immutable(folder/'subtitle-review.srt',timeline['srt']);immutable(folder/'timeline.json',timeline)
     request={'schema':'draftcut.review-request.v2','stage':'manuscript','project_id':m['project_id'],'project_dir':str(p.resolve()),'generation':state['generation'],
              'subject':subject,'review_sha256':sha(folder/'review.md'),'subtitle_sha256':sha(folder/'subtitle-review.srt'),'timeline_sha256':sha(folder/'timeline.json'),

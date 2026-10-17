@@ -146,10 +146,56 @@ class SpokenWorkflowTests(unittest.TestCase):
         html=p/'hyperframes/index.html';html.write_text(html.read_text().replace('个用户不是','个用户是'))
         with self.assertRaisesRegex(ValueError,'caption text'):assert_director(plan,p/'hyperframes')
 
-    def test_27_missing_listening_evidence_blocks_with_actionable_message(self):
+    def test_27_missing_manuscript_evidence_blocks_with_actionable_message(self):
         p,k=self.draft();(p/'semantic-review.json').unlink()
-        with self.assertRaisesRegex(ValueError,'Complete source and review-proxy listening'):manuscript_request(p)
+        with self.assertRaisesRegex(ValueError,'Complete full manuscript review'):manuscript_request(p)
         self.assertFalse((p/'prepared').exists())
         self.assertFalse(list(p.glob('reviews/**/request.json')))
+
+    def test_28_text_review_outputs_full_package_without_listening(self):
+        p,k=self.draft();e=read(p/'semantic-review.json')
+        e.update(mode='text-review',hearing='not-tested',source_listened_seconds=0,preview_listened_seconds=0,
+                 review_disclosure='Full source and refined manuscripts reviewed; no listening required.',
+                 findings='Every word decision and output caption checked against the source transcript.')
+        write(p/'semantic-review.json',e)
+        q,f,t=manuscript_request(p)
+        self.assertEqual((f/'subtitle-review.srt').read_text(),t['srt'])
+        self.assertIn('text-review',(f/'review.md').read_text())
+        with self.assertRaises(ApprovalRequired):render_audio(p)
+        self.assertFalse((p/'prepared').exists())
+
+    def test_29_text_review_requires_disclosure_and_all_words(self):
+        p,k=self.draft();e=read(p/'semantic-review.json')
+        e.update(mode='text-review',hearing='not-tested',source_listened_seconds=0,preview_listened_seconds=0)
+        write(p/'semantic-review.json',e)
+        with self.assertRaisesRegex(ValueError,'Disclose'):manuscript_request(p)
+        e['review_disclosure']='Full text review without listening';e['reviewed_word_ids']=e['reviewed_word_ids'][:-1]
+        write(p/'semantic-review.json',e)
+        with self.assertRaisesRegex(ValueError,'every source word'):manuscript_request(p)
+
+    def test_30_asr_correction_accepts_documented_non_listening_evidence(self):
+        p,k=self.draft();d=read(p/'manuscript.json')
+        d['corrections']['w00009']={'text':'不是','reason':'Textual confirmation',
+                                  'evidence':'Owner explicitly confirmed the wording; hearing not tested.'}
+        write(p/'manuscript.json',d)
+        self.assertIn('不是',compile_edit(p)['refined_text'])
+
+    def test_31_same_model_asr_without_listening_retains_proxy_binding(self):
+        p,k=self.draft();v=read(p/'preview.json');e=read(p/'semantic-review.json')
+        path=p/'proxy-asr.json';write(path,{'source':v['audio'],'duration_seconds':v['duration_seconds'],
+                                         'segments':[{'text':'fixture transcript'}]})
+        e.update(mode='same-model-asr',hearing='not-tested',source_listened_seconds=0,preview_listened_seconds=0,
+                 review_disclosure='ASR and complete text reviewed, without listening.',asr_transcript=str(path),
+                 asr_sha256=sha(path),source_model='fixture-asr',review_model='fixture-asr')
+        write(p/'semantic-review.json',e);manuscript_request(p)
+        raw=read(path);raw['source']='another.wav';write(path,raw);e['asr_sha256']=sha(path);write(p/'semantic-review.json',e)
+        with self.assertRaisesRegex(ValueError,'does not match'):manuscript_request(p)
+
+    def test_32_text_review_cannot_claim_unperformed_listening(self):
+        p,k=self.draft();e=read(p/'semantic-review.json')
+        e.update(mode='text-review',hearing='not-tested',source_listened_seconds=1,preview_listened_seconds=0,
+                 review_disclosure='Text only.')
+        write(p/'semantic-review.json',e)
+        with self.assertRaisesRegex(ValueError,'zero listened seconds'):manuscript_request(p)
 
 if __name__=='__main__':unittest.main()

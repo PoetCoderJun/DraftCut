@@ -111,7 +111,9 @@ def compile_edit(project):
     if set(corrections)-kept:raise ValueError('Corrections may refer only to retained source words')
     for wid,c in corrections.items():
         if protected(lookup[wid],d.get('protected_terms',[])) and c.get('text')!=lookup[wid]['text'] and not str(c.get('sensitive_change_reason','')).strip():raise ValueError('Protected ASR correction needs an explicit sensitive-change reason: '+wid)
-        if not all(isinstance(c.get(k),str) and c[k].strip() for k in ('text','reason','listening_evidence')):raise ValueError('ASR correction needs text, reason and listening evidence; never add unspoken words')
+        evidence=c.get('evidence') or c.get('listening_evidence')
+        if not all(isinstance(c.get(k),str) and c[k].strip() for k in ('text','reason')) or not isinstance(evidence,str) or not evidence.strip():
+            raise ValueError('ASR correction needs text, reason and evidence (ASR, source draft, user confirmation or optional listening); never add unspoken words')
     # Group retained words into contiguous source runs, in the approved output order.
     indices={w['id']:i for i,w in enumerate(words)};runs=[]
     for wid in order:

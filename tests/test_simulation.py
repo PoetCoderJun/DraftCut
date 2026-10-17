@@ -39,7 +39,7 @@ class SimulationTests(unittest.TestCase):
   m=read(self.p/'source.json');m.pop('simulation_run');write(self.p/'source.json',m);preview(self.p)
   e=read(self.p/'semantic-review.json');from spoken_workflow import manuscript_base
   e.update(manuscript_digest=manuscript_base(self.p),preview_sha256=read(self.p/'preview.json')['audio_sha256']);write(self.p/'semantic-review.json',e)
-  with self.assertRaisesRegex(ValueError,'production listening'):manuscript_request(self.p)
+  with self.assertRaisesRegex(ValueError,'production review'):manuscript_request(self.p)
  def test_05_both_stages_and_edit_invalidation_are_real(self):
   plan=self.second();self.assertFalse(assert_director(plan)['owner_approval']);q,f,_,_=director_request(plan);old=read(f/'approval.json')
   script=self.p/'MG导演脚本.md';script.write_text(script.read_text()+' 增加一个图解。')
