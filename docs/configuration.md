@@ -51,4 +51,4 @@ Agent 自己的模型登录或 OpenAI key 不能替代 DashScope key。只有内
 
 当前实际验证 macOS Apple Silicon，Linux 运行与 CJK 字体仍需本机检查；Windows 制作流程明确 blocked。沿用 bootstrap 给出的 Python、PATH 和 `DRAFTCUT_CHROME`；不要硬编码作者路径。中文需实际截图核对，技术检查不证明全文听审或连续观看。
 
-API 配置与内容审核互不替代。干净成片按真实对话中的当前文稿批准自动交付，无需终端签名。旧签名包装路径保留，独立可验证的宿主签发接口缺口见[对话批准边界](conversational-approvals.md)。签名口令不应存入 ASR 文件，临时 HOME 也不能重定向生产信任锚。
+API 配置与内容审核互不替代。干净成片和包装制作都按真实对话中的当前版本批准自动继续；用户无需设置审批身份或执行终端签名。Agent 只在项目内保存版本绑定的确认记录，见[对话内确认](approvals.md)。

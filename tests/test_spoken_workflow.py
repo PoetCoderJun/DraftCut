@@ -3,8 +3,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'scripts'))
 spec=importlib.util.spec_from_file_location('full_workflow_example',ROOT/'examples/full-workflow/run.py');example=importlib.util.module_from_spec(spec);spec.loader.exec_module(example)
 from spoken_edit import compile_edit,read,write,sha,verify_splice,render_presenter,source_state
-from spoken_workflow import manuscript_request,render_audio,director_request,assert_director,preview,manuscript_base,ApprovalRequired
-from review_approval import issue
+from spoken_workflow import manuscript_request,render_audio,director_request,assert_director,preview,manuscript_base,ApprovalRequired,record_approval
 
 class SpokenWorkflowTests(unittest.TestCase):
     def setUp(self):self.temp=tempfile.TemporaryDirectory();self.out=Path(self.temp.name)/'case'
@@ -42,11 +41,11 @@ class SpokenWorkflowTests(unittest.TestCase):
         for c in t['captions']:self.assertGreaterEqual(round(c['start']*1000),0);self.assertLessEqual(round(c['end']*1000),round(t['duration_seconds']*1000))
         d=read(p/'manuscript.json');d['pause_deletions'][0]['start']=.16;write(p/'manuscript.json',d)
         with self.assertRaisesRegex(ValueError,'overlaps speech'):compile_edit(p)
-    def test_06_model_boolean_cannot_approve_and_wrong_signer_rejected(self):
+    def test_06_legacy_boolean_and_wrong_approval_source_are_rejected(self):
         p,k=self.draft();q,f,t=manuscript_request(p);write(f/'approval.json',{'approved':True,'approved_by':'agent'})
-        with self.assertRaisesRegex(ValueError,'forged|missing'):render_audio(p)
-        other=example.crypto('generate',{'passphrase':'other-synthetic-key'});write(f/'approval.json',issue(q,other['private_key'],'other-synthetic-key'))
-        with self.assertRaisesRegex(ValueError,'trusted human'):render_audio(p)
+        with self.assertRaisesRegex(ValueError,'missing or invalid'):render_audio(p)
+        (f/'approval.json').unlink()
+        with self.assertRaisesRegex(ValueError,'source'):record_approval(f/'request.json','批准',source='direct-user-conversation')
     def test_07_script_approval_is_a_second_independent_gate(self):
         p,plan=self.complete();q,f,_,_=director_request(plan);saved=read(f/'approval.json');(f/'approval.json').unlink()
         with self.assertRaisesRegex(ApprovalRequired,'video script'):assert_director(plan)
@@ -112,11 +111,9 @@ class SpokenWorkflowTests(unittest.TestCase):
         p,plan=self.complete();subprocess.run(['node',str(ROOT/'scripts/init_project.mjs'),'--plan',str(plan),'--project-dir',str(p/'hyperframes')],check=True,capture_output=True)
         f=p/'hyperframes/assets/narration.wav';b=bytearray(f.read_bytes());b[-30]^=1;f.write_bytes(b)
         with self.assertRaisesRegex(ValueError,'Composition audio'):assert_director(plan,p/'hyperframes')
-    def test_21_signature_tampering_and_noninteractive_self_approval_fail(self):
-        p,k=self.draft();q,f,t=manuscript_request(p);example.approve_fixture(q,f,k);a=read(f/'approval.json');a['payload']['issued_at']='changed';write(f/'approval.json',a)
-        with self.assertRaisesRegex(ValueError,'signature'):render_audio(p)
-        r=subprocess.run([sys.executable,str(ROOT/'scripts/review_approval.py'),'approve','--request',str(f/'request.json')],input='APPROVE anything\n',capture_output=True,text=True)
-        self.assertNotEqual(r.returncode,0);self.assertIn('interactive terminal',r.stderr)
+    def test_21_conversation_approval_is_bound_to_current_request(self):
+        p,k=self.draft();q,f,t=manuscript_request(p);example.approve_fixture(q,f,k);a=read(f/'approval.json');a['payload']['request_sha256']='changed';write(f/'approval.json',a)
+        with self.assertRaisesRegex(ValueError,'stale'):render_audio(p)
     def test_22_duplicate_or_omitted_word_cannot_silently_change_audio(self):
         p,k=self.draft();original=read(p/'manuscript.json')
         for order in [original['order'][:-1],original['order']+[original['order'][0]]]:
@@ -124,7 +121,8 @@ class SpokenWorkflowTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'every retained word'):compile_edit(p)
     def test_23_example_tag_cannot_authorize_arbitrary_pcm(self):
         p,k=self.draft();m=read(p/'source.json');audio=p/'normalized-source.wav';b=bytearray(audio.read_bytes());b[-100]^=1;audio.write_bytes(b);m['normalized_sha256']=sha(audio);write(p/'source.json',m)
-        with self.assertRaisesRegex(ValueError,'known synthetic'):__import__('spoken_workflow').project_trust(p)
+        pr=preview(p);e=read(p/'semantic-review.json');e.update(manuscript_digest=manuscript_base(p),preview_sha256=pr['audio_sha256']);write(p/'semantic-review.json',e)
+        with self.assertRaisesRegex(ValueError,'known synthetic'):manuscript_request(p)
     def test_24_final_aac_waveform_matches_edited_audio_and_rejects_raw(self):
         p,k=self.draft();q,f,t=manuscript_request(p);example.approve_fixture(q,f,k);loc=render_audio(p);aac=Path(self.temp.name)/'edited.m4a'
         subprocess.run(['ffmpeg','-v','error','-i',str(loc/'narration.wav'),'-c:a','aac','-b:a','192k',str(aac)],check=True)
@@ -197,5 +195,15 @@ class SpokenWorkflowTests(unittest.TestCase):
                  review_disclosure='Text only.')
         write(p/'semantic-review.json',e)
         with self.assertRaisesRegex(ValueError,'zero listened seconds'):manuscript_request(p)
+
+    def test_33_production_conversation_reply_unlocks_current_manuscript(self):
+        p,k=self.draft();m=read(p/'source.json');m['example_only']=False;write(p/'source.json',m);pr=preview(p)
+        e=read(p/'semantic-review.json');e.update(mode='text-review',hearing='not-tested',
+                 manuscript_digest=manuscript_base(p),preview_sha256=pr['audio_sha256'],
+                 source_listened_seconds=0,preview_listened_seconds=0,
+                 review_disclosure='Full text review without listening.')
+        write(p/'semantic-review.json',e);q,f,_=manuscript_request(p)
+        record_approval(f/'request.json','这版完整口播稿可以，继续制作。')
+        self.assertTrue((render_audio(p)/'narration.wav').is_file())
 
 if __name__=='__main__':unittest.main()

@@ -105,11 +105,11 @@ def media_health(ffmpeg, ffprobe, chrome, node):
 def bootstrap(install=False, chrome_override=None, env_file=None):
     report = {'schema': 'draftcut.bootstrap.v1', 'status': 'blocked', 'repository': str(ROOT),
               'actions': [], 'checks': {}, 'blockers': [],
-              'scope': 'local dependency and media checks; no cloud ASR, approvals, real-media or creative certification'}
+              'scope': 'local dependency and media checks; no cloud ASR, real-media or creative certification'}
     try:
         report['capabilities'] = {
             'asr': config_status(env_file),
-            'human_approval': {'status': 'not_checked', 'action': 'The owner sets up and signs in their own terminal; HOME/XDG overrides do not change the OS-account trust anchor. See docs/approvals.md'},
+            'conversation_approval': {'status': 'ready', 'action': 'The Agent records an explicit reply to the current review; no separate identity setup or terminal signing is required'},
             'agent_audio_video': {'status': 'not_checked', 'action': 'Check actual listening and continuous viewing in the current Agent channel; dependency health cannot establish these capabilities'},
         }
     except (ValueError, OSError) as error:

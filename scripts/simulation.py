@@ -1,9 +1,15 @@
 """Explicit, isolated usability runs. Never a production human identity."""
 from __future__ import annotations
-import argparse, hashlib, json, secrets, uuid
+import argparse, hashlib, json, secrets, subprocess, uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from review_approval import canonical, crypto, digest
+ROOT=Path(__file__).resolve().parent
+def canonical(value):return json.dumps(value,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False)
+def digest(value):return hashlib.sha256(canonical(value).encode()).hexdigest()
+def crypto(mode,payload):
+    p=subprocess.run(['node',str(ROOT/'approval_crypto.mjs'),mode],input=json.dumps(payload),text=True,capture_output=True)
+    if p.returncode:raise ValueError('Simulation signature operation failed')
+    return json.loads(p.stdout)
 
 RUN_SCHEMA='draftcut.simulation-run.v1'
 RECEIPT_SCHEMA='draftcut.simulated-user-approval.v1'

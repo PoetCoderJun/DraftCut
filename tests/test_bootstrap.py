@@ -38,7 +38,7 @@ class BootstrapSafety(unittest.TestCase):
             self.assertEqual(result['status'], 'ready');self.assertEqual(run.call_count, 2)
             self.assertTrue(all('reused healthy' in a for a in result['actions']))
             self.assertEqual((root / '.venv/bin/python').read_text(), 'preserve')
-            self.assertEqual(result['capabilities']['human_approval']['status'], 'not_checked')
+            self.assertEqual(result['capabilities']['conversation_approval']['status'], 'ready')
             self.assertEqual(result['runtime']['environment']['DRAFTCUT_CHROME'], str((root / 'chrome').resolve()))
 
     def test_local_readiness_does_not_claim_asr_or_agent_capabilities(self):

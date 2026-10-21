@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""Two human approvals bound to source, word decisions, audio, script and assets."""
+"""Two conversational approvals bound to the reviewed manuscript and director plan."""
 from __future__ import annotations
 import argparse, contextlib, hashlib, json, os, shutil, subprocess, sys, tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 from spoken_edit import initialize,source_state,compile_edit,splice,render_presenter,read,write,sha,SR,verify_splice
-from review_approval import canonical,digest,verify_receipt,TRUST_FILE
+
+def canonical(value):
+    return json.dumps(value,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False)
+def digest(value):return hashlib.sha256(canonical(value).encode()).hexdigest()
 
 class ApprovalRequired(ValueError):pass
 
@@ -16,7 +20,38 @@ def verify_stage(p,request,receipt):
         if request.get('simulation_run')!=m['simulation_run']:raise ValueError('Review simulation scope mismatch')
         return verify(request,receipt,run,public)
     if request.get('simulation_run'):raise ValueError('Simulation receipt cannot authorize production')
-    return verify_receipt(request,receipt,project_trust(p))
+    return verify_conversation_approval(request,receipt)
+
+def verify_conversation_approval(request,receipt):
+    payload=receipt.get('payload',{})
+    expected_source='synthetic-fixture' if request.get('example_only') else 'direct-user-conversation'
+    if payload.get('schema')!='draftcut.conversation-approval.v1' or payload.get('decision')!='approved':
+        raise ValueError('Explicit conversation approval is missing or invalid')
+    if payload.get('request_sha256')!=digest(request):raise ValueError('Conversation approval is stale for this review')
+    if any(payload.get(k)!=request.get(k) for k in ('stage','project_id','generation')):
+        raise ValueError('Conversation approval project/stage/revision mismatch')
+    if request.get('stage')=='director' and payload.get('director_generation')!=request.get('director_generation'):
+        raise ValueError('Conversation approval director revision mismatch')
+    if payload.get('source')!=expected_source or not str(payload.get('reply','')).strip():
+        raise ValueError('Conversation approval source or reply is invalid')
+    return digest(receipt)
+
+def record_approval(request_path,reply,source='direct-user-conversation'):
+    request_path=Path(request_path).resolve();reply=str(reply).strip()
+    if not reply:raise ValueError('Record the actual explicit approval reply')
+    request=read(request_path);validate_request(request,request_path)
+    if request.get('simulation_run'):raise ValueError('Simulation approvals use the isolated test controller')
+    expected_source='synthetic-fixture' if request.get('example_only') else 'direct-user-conversation'
+    if source!=expected_source:raise ValueError('Approval source does not match this project')
+    payload={'schema':'draftcut.conversation-approval.v1','request_sha256':digest(request),'stage':request['stage'],
+             'project_id':request['project_id'],'generation':request['generation'],'decision':'approved',
+             'source':source,'reply':reply,'recorded_at':datetime.now(timezone.utc).isoformat()}
+    if request.get('stage')=='director':payload['director_generation']=request['director_generation']
+    receipt={'payload':payload};verify_conversation_approval(request,receipt)
+    output=request_path.parent/'approval.json'
+    if output.exists():
+        verify_conversation_approval(request,read(output));return output
+    write(output,receipt);return output
 
 def record_capabilities(p,audio_input,reason):
     timeline=compile_edit(p);proxy=read(p/'preview.json');m,_,words=source_state(p)
@@ -30,16 +65,6 @@ def record_capabilities(p,audio_input,reason):
               **result,'reviewed_word_ids':[w['id'] for w in words],'source_listened_seconds':0,'preview_listened_seconds':0,
               'findings':'Full transcript and sample mapping checked for interaction testing; listening quality is not assessed.'})
     return result
-
-def project_trust(p):
-    m,t,_=source_state(p)
-    if m.get('example_only'):
-        from example_fixture import assert_fixture
-        assert_fixture(p,m,t)
-        return (p/'example-public.pem').read_text()
-    if not TRUST_FILE.is_file():raise ApprovalRequired('Human reviewer is not configured. Run review_approval.py setup yourself, outside the Agent, before approving a production request')
-    if TRUST_FILE.resolve().is_relative_to(p.resolve()):raise ValueError('Production trust must live outside the editable project')
-    return TRUST_FILE.read_text()
 
 def manuscript_base(p):
     m,_,_=source_state(p)
@@ -94,7 +119,8 @@ def semantic_evidence(p,timeline):
     elif mode=='simulation':pass
     elif mode=='synthetic':
         if not m.get('example_only'):raise ValueError('Synthetic semantic evidence cannot approve a production project')
-        project_trust(p)
+        from example_fixture import assert_fixture
+        assert_fixture(p,m,source_state(p)[1])
     else:raise ValueError('Use text-review, same-model-asr, optional human-listening, or the restricted synthetic fixture')
     return e,proxy
 
@@ -139,7 +165,7 @@ def manuscript_request(p):
         lines.append('| '+' | '.join(map(cell,[w['id'],w['text'],x['action'],x['category'],reason]))+' |')
     lines+=['\n## 改口、纠错、移序与停顿 / Additional changes',canonical({'corrections':d.get('corrections',{}),'order':d['order'],'reorder_reason':d.get('reorder_reason',''),'pause_deletions':d.get('pause_deletions',[])}),
             '\n## 文稿复核方式 / Manuscript review method',str(proxy['audio']),canonical(e),'\n## 完整字幕 / Complete output-timed subtitles\n```srt\n'+timeline['srt']+'```',
-            '\n签名确认此素材、此稿件、此时间线和披露的语义复核方式。只有确认后才生成正式精炼音频；没有 TTS 补词。 / Approve only after reviewing the exact manuscript, edits, subtitles and disclosed review method; listening is optional.']
+            '\n请直接在当前对话中明确确认这个版本。确认后 Agent 自动继续；不需要终端命令、口令或签名。 / Approve this exact version directly in the conversation; no terminal command, passphrase, or signature is needed.']
     review='\n'.join(lines)+'\n';immutable(folder/'review.md',review);immutable(folder/'subtitle-review.srt',timeline['srt']);immutable(folder/'timeline.json',timeline)
     request={'schema':'draftcut.review-request.v2','stage':'manuscript','project_id':m['project_id'],'project_dir':str(p.resolve()),'generation':state['generation'],
              'subject':subject,'review_sha256':sha(folder/'review.md'),'subtitle_sha256':sha(folder/'subtitle-review.srt'),'timeline_sha256':sha(folder/'timeline.json'),
@@ -272,6 +298,7 @@ def main():
     for name in ('preview','manuscript-review','render-audio'):
         a=sub.add_parser(name);a.add_argument('--project-dir',type=Path,required=True)
     a=sub.add_parser('director-review');a.add_argument('--plan',type=Path,required=True);a.add_argument('--script',type=Path)
+    a=sub.add_parser('record-approval');a.add_argument('--request',type=Path,required=True);a.add_argument('--reply',required=True)
     a=sub.add_parser('check');a.add_argument('--plan',type=Path,required=True);a.add_argument('--composition',type=Path)
     args=ap.parse_args()
     if args.command=='migrate':
@@ -287,6 +314,8 @@ def main():
         if args.example:
             from example_fixture import assert_fixture
             m,t,_=source_state(args.project_dir);assert_fixture(args.project_dir,m,t)
+    elif args.command=='record-approval':
+        result={'approval':str(record_approval(args.request,args.reply))}
     elif args.command in ('director-review','check'):
         p=Path(read(args.plan).get('workflow',{}).get('project_dir',''))
         if not str(p) or str(p)=='.':raise ValueError('Legacy project requires explicit migration')
@@ -298,7 +327,7 @@ def main():
         with locked(p):
             if args.command=='preview':result=preview(p)
             elif args.command=='record-capabilities':result=record_capabilities(p,args.audio_input,args.reason)
-            elif args.command=='manuscript-review':q,f,_=manuscript_request(p);result={'request':str(f/'request.json'),'review':str(f/'review.md'),'status':'awaiting_human_approval'}
+            elif args.command=='manuscript-review':q,f,_=manuscript_request(p);result={'request':str(f/'request.json'),'review':str(f/'review.md'),'status':'awaiting_user_confirmation'}
             else:result={'prepared':str(render_audio(p))}
     print(json.dumps(result,ensure_ascii=False,default=str))
 if __name__=='__main__':

@@ -4,9 +4,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'scripts'))
 from example_fixture import fixture
 from spoken_edit import initialize,read,write,sha
-from spoken_workflow import preview,record_capabilities,manuscript_request,render_audio,director_request,assert_director,ApprovalRequired
+from spoken_workflow import preview,record_capabilities,manuscript_request,render_audio,director_request,assert_director,ApprovalRequired,verify_conversation_approval
 from simulation import create,attach,approve,context
-from review_approval import verify_receipt,issue
 
 class SimulationTests(unittest.TestCase):
  def setUp(self):
@@ -26,9 +25,8 @@ class SimulationTests(unittest.TestCase):
   self.assertFalse((self.p/'prepared').exists())
  def test_02_simulation_is_honest_and_not_a_production_receipt(self):
   q,f,t,loc=self.first();a=read(f/'approval.json');self.assertEqual(a['payload']['actor'],'simulated-user');self.assertFalse(a['payload']['owner_approval']);self.assertEqual(read(self.p/'semantic-review.json')['source_listened_seconds'],0)
-  run,public=context(self.p,read(self.p/'source.json'))
-  with self.assertRaisesRegex(ValueError,'forged|stale'):verify_receipt(q,a,public)
-  with self.assertRaisesRegex(ValueError,'Production owner'):issue(q,'unused','unused')
+  context(self.p,read(self.p/'source.json'))
+  with self.assertRaisesRegex(ValueError,'missing or invalid'):verify_conversation_approval(q,a)
   self.assertFalse(read(loc/'audio-preparation-report.json')['owner_approval'])
  def test_03_source_and_run_boundary_are_checked(self):
   m=read(self.p/'source.json')

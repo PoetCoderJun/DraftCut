@@ -6,7 +6,7 @@
 
 MIT clean-talking-video 源提交 `598c95d` 的 Skill 包括：口头禅、口误、改口、失败重说、连续／跨句重复、停顿与首尾静音整理；只修正识别错误、术语、标点和断句；全文 Agent 判断、局部试听、用户完整字幕确认、统一音视频/SRT 映射。机械规则只标候选，不自动决定语义删除。本地工作版本另加第一次字幕确认前的精剪代理与语义复核；本集成将对应要求纳入审核包。
 
-本次保留原项目 MIT 声明，导入保守候选生成与纯时间线／字幕助手，并在其上增加逐词完整记账、词级采样保护、可审查差异、移序映射、两次用户签名、内容变更失效和可重试事务。不复制无关私有业务、素材或凭据；原私有仓库可见性不变。
+本次保留原项目 MIT 声明，导入保守候选生成与纯时间线／字幕助手，并在其上增加逐词完整记账、词级采样保护、可审查差异、移序映射、两次对话确认、内容变更失效和可重试事务。不复制无关私有业务、素材或凭据；原私有仓库可见性不变。
 
 ## Legacy 项目必须显式迁移
 
@@ -32,4 +32,4 @@ DraftCut 原名 MotionTalk；仓库为 [PoetCoderJun/DraftCut](https://github.co
 
 此前 `9f7fbdd` 音频集成只导入 ASR 和选中气口，其 [历史迁移说明](https://github.com/PoetCoderJun/DraftCut/blob/9f7fbddb09c588c43ac29944a851c5ac5f7bd9da/docs/audio-first-migration.md#L7-L9) 明确没有继承完整语义精剪。本次补齐这部分，不再把那份历史说明当作当前功能边界。
 
-当前实现见 [spoken_edit.py](../scripts/spoken_edit.py)、[spoken_workflow.py](../scripts/spoken_workflow.py) 和 [签名审批](approvals.md)。源清单、逐词决定与审听证据进入第一道请求；正式原声与导演内容进入第二道请求。初始化、渲染和交付验证均检查当前签名链；所有例外都不能靠旧状态布尔值触发。
+当前实现见 [spoken_edit.py](../scripts/spoken_edit.py)、[spoken_workflow.py](../scripts/spoken_workflow.py) 和 [对话内确认](approvals.md)。源清单、逐词决定与复核证据进入第一道请求；正式原声与导演内容进入第二道请求。初始化、渲染和交付验证均检查当前版本绑定的确认记录；所有例外都不能靠旧状态布尔值触发。

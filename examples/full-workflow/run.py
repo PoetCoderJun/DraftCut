@@ -5,15 +5,13 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2];sys.path.insert(0,str(ROOT/'scripts'))
 from example_fixture import fixture
 from spoken_edit import initialize,read,write,source_state,sha
-from spoken_workflow import preview,manuscript_base,manuscript_request,render_audio,director_request,assert_director
-from review_approval import crypto,issue
+from spoken_workflow import preview,manuscript_base,manuscript_request,render_audio,director_request,assert_director,record_approval
 
 def draft_example(out):
     out=Path(out).resolve()
     if out.exists() and any(out.iterdir()):raise ValueError('Use a new empty example directory')
     out.mkdir(parents=True,exist_ok=True);audio,t,_=fixture();(out/'source.wav').write_bytes(audio);write(out/'source-transcript.json',t)
     p=out/'project';initialize(out/'source.wav',out/'source-transcript.json',p,example_only=True)
-    keys=crypto('generate',{'passphrase':'public-synthetic-fixture-only'});(p/'example-public.pem').write_text(keys['public_key'])
     d=read(p/'manuscript.json')
     for i,category in [(0,'filler'),(2,'redundant_repeat'),(4,'correction'),(5,'correction')]:
         d['decisions'][i].update(action='delete',category=category,reason='Authored fixture: '+('keep the later corrected forty' if i in (4,5) else 'remove a nonsemantic filler / failed first repetition'))
@@ -27,11 +25,11 @@ def draft_example(out):
     write(p/'semantic-review.json',{'mode':'synthetic','manuscript_digest':manuscript_base(p),'preview_sha256':proxy['audio_sha256'],
           'reviewed_word_ids':d['reviewed_word_ids'],'source_listened_seconds':proxy['source_duration_seconds'],
           'preview_listened_seconds':proxy['duration_seconds'],'findings':'Synthetic fixture coverage only: tones and authored transcript, not real listening or live ASR. Negation, number, name and deliberate repetition retained.'})
-    return p,keys
+    return p,None
 
 def approve_fixture(request,folder,keys):
-    if not request.get('example_only'):raise ValueError('Fixture signer never signs production requests')
-    write(folder/'approval.json',issue(request,keys['private_key'],'public-synthetic-fixture-only'))
+    if not request.get('example_only'):raise ValueError('Fixture approval never authorizes production requests')
+    record_approval(folder/'request.json','Approved by the deterministic synthetic fixture.',source='synthetic-fixture')
 
 def complete_example(out):
     p,keys=draft_example(out);q,f,_=manuscript_request(p);approve_fixture(q,f,keys);loc=render_audio(p)
